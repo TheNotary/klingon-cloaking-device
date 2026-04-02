@@ -12,6 +12,6 @@ rules:
   - apiGroups: ["networking.k8s.io"]
     resources: ["networkpolicies"]
     verbs: ["get", "patch"]
-  - apiGroups: ["klingon-cloaking-device.example.com"]
+  - apiGroups: ["klingon-cloaking-device.thenotary.github.io"]
     resources: ["cloakingdevices"]
     verbs: ["get", "list", "watch"]

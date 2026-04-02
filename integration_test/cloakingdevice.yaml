@@ -1,4 +1,4 @@
-apiVersion: klingon-cloaking-device.example.com/v1alpha1
+apiVersion: klingon-cloaking-device.thenotary.github.io/v1alpha1
 kind: CloakingDevice
 metadata:
   name: ssh-server

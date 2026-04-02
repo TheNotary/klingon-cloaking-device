@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 /// The CR's namespace determines which namespace the target Service lives in.
 #[derive(CustomResource, Clone, Debug, Deserialize, Serialize, JsonSchema)]
 #[kube(
-    group = "klingon-cloaking-device.example.com",
+    group = "klingon-cloaking-device.thenotary.github.io",
     version = "v1alpha1",
     kind = "CloakingDevice",
     namespaced
