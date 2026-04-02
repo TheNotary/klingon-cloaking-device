@@ -1,4 +1,4 @@
-namespace: klingon-cloaking-device
+namespace: {{ .Release.Namespace }}
 createNamespace: true
 
 image:
