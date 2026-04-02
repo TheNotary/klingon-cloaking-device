@@ -5,7 +5,8 @@ createNamespace: true
 
 image:
   repository: ghcr.io/thenotary/klingon-cloaking-device-server
-  tag: latest
+  # Defaults to Chart appVersion when empty.
+  tag: ""
   pullPolicy: IfNotPresent
 
 replicas: 1

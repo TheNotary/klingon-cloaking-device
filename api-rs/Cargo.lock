@@ -842,11 +842,11 @@ dependencies = [
 
 [[package]]
 name = "kcd-proto"
-version = "0.1.0"
+version = "0.0.0-dev"
 
 [[package]]
 name = "klingon-cloaking-device-server"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "arc-swap",
  "futures",

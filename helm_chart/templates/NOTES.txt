@@ -1,0 +1,23 @@
+🖖 Qapla'! The Klingon Cloaking Device has been deployed.
+
+   Release:   {{ .Release.Name }}
+   Namespace: {{ include "kcd.namespace" . }}
+
+To cloak a Service, create a CloakingDevice resource:
+
+    apiVersion: klingon-cloaking-device.thenotary.github.io/v1alpha1
+    kind: CloakingDevice
+    metadata:
+      name: my-web-app
+      namespace: {{ include "kcd.namespace" . }}
+    spec:
+      serviceName: my-web-app   # The Service to hide behind IP whitelisting
+      ttlHours: 12              # Hours before authorized IPs expire (default: 24, 0 = never)
+
+Apply it:
+
+    kubectl apply -f cloakingdevice.yaml
+
+Check status:
+
+    kubectl get cloakingdevices -n {{ include "kcd.namespace" . }}
