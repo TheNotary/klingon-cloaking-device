@@ -33,6 +33,26 @@ helm install kcd oci://ghcr.io/thenotary/charts/klingon-cloaking-device \
 
 See [values.yaml](values.yaml) for all configurable values.
 
+### Namespace
+
+By default, all resources are deployed into the Helm release namespace (the
+`--namespace` flag). To deploy into a different namespace, set
+`namespaceOverride`:
+
+```bash
+helm install kcd oci://ghcr.io/thenotary/charts/klingon-cloaking-device \
+  --namespace klingon-cloaking-device \
+  --create-namespace \
+  --set namespaceOverride=my-custom-ns \
+  --set secrets.knockPassword="<YOUR_KNOCK_PASSWORD>" \
+  --set secrets.accessPassword="<YOUR_ACCESS_PASSWORD>"
+```
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `namespaceOverride` | string | `""` | Override the release namespace for all resources |
+| `createNamespace` | bool | `true` | Create a Namespace resource with chart labels |
+
 ### TLS Values
 
 | Key | Type | Default | Description |

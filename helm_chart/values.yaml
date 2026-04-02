@@ -1,4 +1,6 @@
-namespace: {{ .Release.Namespace }}
+# Override the release namespace for all resources.
+# Leave empty to use the Helm release namespace (--namespace flag).
+namespaceOverride: ""
 createNamespace: true
 
 image:

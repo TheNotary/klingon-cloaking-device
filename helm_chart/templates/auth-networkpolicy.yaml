@@ -3,7 +3,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ .Chart.Name }}-auth-netpol
-  namespace: {{ .Values.namespace }}
+  namespace: {{ include "kcd.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ .Chart.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
