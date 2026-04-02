@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: klingon-cloaking-device
+  namespace: klingon-cloaking-device
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: klingon-cloaking-device
+  template:
+    metadata:
+      labels:
+        app: klingon-cloaking-device
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: klingon-cloaking-device
+      containers:
+        - name: klingon-cloaking-device
+          image: ghcr.io/thenotary/klingon-cloaking-device-server:latest # <-- UPDATE
+          ports:
+            - containerPort: 9000
+              protocol: UDP
+              name: knock
+            - containerPort: 9001
+              protocol: TCP
+              name: auth
+          env:
+            - name: KCD_KNOCK_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: klingon-cloaking-device-credentials
+                  key: kcd-knock-password
+            - name: KCD_ACCESS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: klingon-cloaking-device-credentials
+                  key: kcd-access-password
+            - name: KCD_IP_TTL_HOURS
+              value: "24"
+            - name: KCD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: KCD_AUTH_NETPOL_NAME
+              value: klingon-cloaking-device-auth-netpol
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            tcpSocket:
+              port: 9001
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 9001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: klingon-cloaking-device-keyvault

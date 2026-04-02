@@ -1,0 +1,7 @@
+apiVersion: klingon-cloaking-device.example.com/v1alpha1
+kind: CloakingDevice
+metadata:
+  name: ssh-server
+  namespace: kcd-integration-test
+spec:
+  serviceName: ssh-server

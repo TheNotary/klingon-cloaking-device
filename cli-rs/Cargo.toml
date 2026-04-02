@@ -1,0 +1,20 @@
+[package]
+name = "klingon-cloaking-device"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "klingon-cloaking-device"
+path = "src/main.rs"
+
+[dependencies]
+kcd-proto = { path = "../kcd-proto" }
+tokio = { version = "1", features = ["full"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "logging", "std"] }
+tokio-rustls = { version = "0.26" }
+rustls-pemfile = "2"
+clap = { version = "4", features = ["derive", "env"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+webpki-roots = "0.26"
+

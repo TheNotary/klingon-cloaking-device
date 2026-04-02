@@ -1,0 +1,21 @@
+{{- if eq .Values.tls.mode "certManager" }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Chart.Name }}-tls
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  secretName: {{ .Chart.Name }}-tls
+  issuerRef:
+    name: {{ .Values.tls.certManager.issuerName }}
+    kind: {{ .Values.tls.certManager.issuerKind }}
+  {{- if .Values.tls.certManager.dnsNames }}
+  dnsNames:
+    {{- range .Values.tls.certManager.dnsNames }}
+    - {{ . | quote }}
+    {{- end }}
+  {{- end }}
+{{- end }}

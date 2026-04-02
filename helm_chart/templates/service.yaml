@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: LoadBalancer
+  ports:
+    - port: {{ .Values.ports.knock }}
+      targetPort: {{ .Values.ports.knock }}
+      protocol: UDP
+      name: knock
+    - port: {{ .Values.ports.auth }}
+      targetPort: {{ .Values.ports.auth }}
+      protocol: TCP
+      name: auth
+  selector:
+    app: {{ .Chart.Name }}

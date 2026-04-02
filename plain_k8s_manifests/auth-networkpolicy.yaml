@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: klingon-cloaking-device-auth-netpol
+  namespace: klingon-cloaking-device
+spec:
+  podSelector:
+    matchLabels:
+      app: klingon-cloaking-device
+  policyTypes:
+    - Ingress
+  ingress: []

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: klingon-cloaking-device
+  namespace: klingon-cloaking-device
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 9000
+      targetPort: 9000
+      protocol: UDP
+      name: knock
+    - port: 9001
+      targetPort: 9001
+      protocol: TCP
+      name: auth
+  selector:
+    app: klingon-cloaking-device

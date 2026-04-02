@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: klingon-cloaking-device-servicepatch
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: klingon-cloaking-device-servicepatch
+subjects:
+  - kind: ServiceAccount
+    name: klingon-cloaking-device
+    namespace: klingon-cloaking-device

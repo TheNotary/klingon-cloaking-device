@@ -1,0 +1,97 @@
+name: Main CI
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-main-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust-build-and-test:
+    name: Rust (${{ matrix.crate.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        crate:
+          - name: api-rs
+            manifest: api-rs/Cargo.toml
+          - name: cli-rs
+            manifest: cli-rs/Cargo.toml
+          - name: kcd-proto
+            manifest: kcd-proto/Cargo.toml
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            api-rs -> target
+            cli-rs -> target
+            kcd-proto -> target
+
+      - name: Build
+        run: cargo build --release --manifest-path "${{ matrix.crate.manifest }}"
+
+      - name: Test
+        run: cargo test --manifest-path "${{ matrix.crate.manifest }}"
+
+  helm-chart-test:
+    name: Helm Chart
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint chart
+        run: helm lint ./helm_chart
+
+      - name: Render default templates
+        run: helm template kcd ./helm_chart > /dev/null
+
+      - name: Render with inline secrets
+        run: |
+          helm template kcd ./helm_chart \
+            --set secrets.knockPassword=test-knock \
+            --set secrets.accessPassword=test-access > /dev/null
+
+      - name: Render cert-manager mode
+        run: |
+          helm template kcd ./helm_chart \
+            --set tls.mode=certManager \
+            --set tls.certManager.issuerName=test-issuer > /dev/null
+
+      - name: Render existing secret mode
+        run: |
+          helm template kcd ./helm_chart \
+            --set tls.mode=secret \
+            --set tls.secret.name=existing-tls-secret > /dev/null
+
+      - name: Render inline tls mode
+        run: |
+          helm template kcd ./helm_chart \
+            --set tls.mode=inline \
+            --set tls.inline.crt=ZHVtbXk= \
+            --set tls.inline.key=ZHVtbXk= > /dev/null
+
+      - name: Render with secret provider enabled
+        run: |
+          helm template kcd ./helm_chart \
+            --set secretProvider.enabled=true \
+            --set secretProvider.clientID=test-client-id \
+            --set secretProvider.keyvaultName=test-keyvault \
+            --set secretProvider.tenantID=test-tenant-id > /dev/null

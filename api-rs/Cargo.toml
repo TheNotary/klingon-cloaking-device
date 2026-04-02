@@ -1,0 +1,30 @@
+[package]
+name = "klingon-cloaking-device-server"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "klingon-cloaking-device-server"
+path = "src/main.rs"
+
+[dependencies]
+kcd-proto = { path = "../kcd-proto" }
+tokio = { version = "1", features = ["full"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "logging", "std"] }
+tokio-rustls = { version = "0.26" }
+rustls-pemfile = "2"
+kube = { version = "0.98", default-features = false, features = ["client", "rustls-tls", "derive", "runtime"] }
+k8s-openapi = { version = "0.24", features = ["v1_32"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+schemars = "0.8"
+futures = "0.3"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+subtle = "2"
+arc-swap = "1"
+
+[dev-dependencies]
+rcgen = "0.13"
+tempfile = "3"
+

@@ -1,0 +1,62 @@
+namespace: klingon-cloaking-device
+createNamespace: true
+
+image:
+  repository: ghcr.io/thenotary/klingon-cloaking-device-server
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicas: 1
+
+ports:
+  knock: 9000
+  auth: 9001
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+ipTtlHours: "24"
+
+serviceAccount:
+  annotations: {}
+  # azure.workload.identity/client-id: "<client-id>"
+
+secretProvider:
+  enabled: false
+  clientID: ""
+  keyvaultName: ""
+  tenantID: ""
+
+secrets:
+  # Name of an existing K8s Secret containing kcd-knock-password and kcd-access-password keys.
+  existingSecret: ""
+  # If existingSecret is empty, these values are used to create a Secret.
+  knockPassword: ""
+  accessPassword: ""
+
+tls:
+  # One of: certManager, secret, inline, or "" (disabled — use secretProvider or external mount)
+  mode: ""
+
+  # cert-manager mode: creates a Certificate CR that provisions a TLS Secret.
+  certManager:
+    issuerName: ""
+    issuerKind: "ClusterIssuer"
+    dnsNames: []
+
+  # secret mode: reference an existing kubernetes.io/tls Secret by name.
+  secret:
+    name: ""
+
+  # inline mode: provide base64-encoded PEM cert chain and private key.
+  inline:
+    crt: ""
+    key: ""
+
+networkPolicy:
+  enabled: true

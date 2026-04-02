@@ -1,0 +1,6 @@
+*.lock
+*.log
+identities.yaml
+integrations
+hooks
+issues/

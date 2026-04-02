@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: {{ .Chart.Name }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.ports.knock }}
+              protocol: UDP
+              name: knock
+            - containerPort: {{ .Values.ports.auth }}
+              protocol: TCP
+              name: auth
+          env:
+            - name: KCD_KNOCK_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.secrets.existingSecret }}{{ .Values.secrets.existingSecret }}{{ else }}{{ .Chart.Name }}-credentials{{ end }}
+                  key: kcd-knock-password
+            - name: KCD_ACCESS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.secrets.existingSecret }}{{ .Values.secrets.existingSecret }}{{ else }}{{ .Chart.Name }}-credentials{{ end }}
+                  key: kcd-access-password
+            - name: KCD_IP_TTL_HOURS
+              value: {{ .Values.ipTtlHours | quote }}
+            - name: KCD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: KCD_AUTH_NETPOL_NAME
+              value: {{ .Chart.Name }}-auth-netpol
+          {{- if .Values.tls.mode }}
+            - name: KCD_TLS_CERT_PATH
+              value: /certs/tls.crt
+            - name: KCD_TLS_KEY_PATH
+              value: /certs/tls.key
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.ports.auth }}
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.ports.auth }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          {{- if or .Values.secretProvider.enabled .Values.tls.mode }}
+          volumeMounts:
+          {{- if .Values.secretProvider.enabled }}
+            - name: secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true
+          {{- end }}
+          {{- if .Values.tls.mode }}
+            - name: tls-certs
+              mountPath: /certs
+              readOnly: true
+          {{- end }}
+          {{- end }}
+      {{- if or .Values.secretProvider.enabled .Values.tls.mode }}
+      volumes:
+      {{- if .Values.secretProvider.enabled }}
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ .Chart.Name }}-keyvault
+      {{- end }}
+      {{- if .Values.tls.mode }}
+        - name: tls-certs
+          secret:
+            secretName: {{ if eq .Values.tls.mode "secret" }}{{ .Values.tls.secret.name }}{{ else }}{{ .Chart.Name }}-tls{{ end }}
+      {{- end }}
+      {{- end }}
