@@ -13,11 +13,13 @@ spec:
       app: {{ .Chart.Name }}
   policyTypes:
     - Ingress
-  {{- if .Values.networkPolicy.healthProbeSourceCIDR }}
+  {{- if .Values.networkPolicy.alwaysAllowedCIDRs }}
   ingress:
     - from:
+        {{- range .Values.networkPolicy.alwaysAllowedCIDRs }}
         - ipBlock:
-            cidr: {{ .Values.networkPolicy.healthProbeSourceCIDR }}
+            cidr: {{ . }}
+        {{- end }}
       ports:
         - port: {{ .Values.ports.auth }}
           protocol: TCP

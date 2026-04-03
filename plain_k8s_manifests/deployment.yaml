@@ -43,8 +43,8 @@ spec:
                   fieldPath: metadata.namespace
             - name: KCD_AUTH_NETPOL_NAME
               value: klingon-cloaking-device-auth-netpol
-            - name: KCD_HEALTH_PROBE_CIDR
-              value: "168.63.129.16/32"
+            - name: KCD_ALWAYS_ALLOWED_CIDRS
+              value: "168.63.129.16/32,10.224.0.0/16"
           resources:
             requests:
               cpu: 50m

@@ -50,9 +50,9 @@ spec:
                   fieldPath: metadata.namespace
             - name: KCD_AUTH_NETPOL_NAME
               value: {{ .Chart.Name }}-auth-netpol
-          {{- if .Values.networkPolicy.healthProbeSourceCIDR }}
-            - name: KCD_HEALTH_PROBE_CIDR
-              value: {{ .Values.networkPolicy.healthProbeSourceCIDR | quote }}
+          {{- if .Values.networkPolicy.alwaysAllowedCIDRs }}
+            - name: KCD_ALWAYS_ALLOWED_CIDRS
+              value: {{ join "," .Values.networkPolicy.alwaysAllowedCIDRs | quote }}
           {{- end }}
           {{- if .Values.tls.mode }}
             - name: KCD_TLS_CERT_PATH

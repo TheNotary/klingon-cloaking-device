@@ -13,6 +13,8 @@ spec:
     - from:
         - ipBlock:
             cidr: 168.63.129.16/32
+        - ipBlock:
+            cidr: 10.224.0.0/16
       ports:
         - port: 9001
           protocol: TCP

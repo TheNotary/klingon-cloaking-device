@@ -76,9 +76,9 @@ struct AppState {
     auth_netpol_name: String,
     /// Namespace where the auth NetworkPolicy lives.
     auth_netpol_namespace: String,
-    /// CIDR that should always be allowed in the auth NetworkPolicy
-    /// (e.g. Azure LB health-probe IP). None means no permanent rule.
-    health_probe_cidr: Option<String>,
+    /// CIDRs that should always be allowed in the auth NetworkPolicy
+    /// (e.g. Azure LB health-probe IP, node subnet for kubelet probes).
+    health_probe_cidrs: Vec<String>,
 
     /// In-flight knock sequences: (src_ip, timestamp) → progress.
     knock_progress: RwLock<HashMap<(IpAddr, u64), KnockProgress>>,
@@ -530,17 +530,21 @@ async fn close_auth_port(state: &AppState, ip: IpAddr) {
     }
 
     let patch = if from_blocks.is_empty() {
-        // No client IPs left — restore baseline with health-probe CIDR if configured.
-        match &state.health_probe_cidr {
-            Some(probe_cidr) => json!({
+        // No client IPs left — restore baseline with health-probe CIDRs if configured.
+        if state.health_probe_cidrs.is_empty() {
+            json!({ "spec": { "ingress": [] } })
+        } else {
+            let probe_blocks: Vec<serde_json::Value> = state.health_probe_cidrs.iter()
+                .map(|c| json!({ "ipBlock": { "cidr": c } }))
+                .collect();
+            json!({
                 "spec": {
                     "ingress": [{
-                        "from": [{ "ipBlock": { "cidr": probe_cidr } }],
+                        "from": probe_blocks,
                         "ports": [{ "port": 9001, "protocol": "TCP" }]
                     }]
                 }
-            }),
-            None => json!({ "spec": { "ingress": [] } }),
+            })
         }
     } else {
         json!({
@@ -577,16 +581,20 @@ async fn clean_auth_networkpolicy(state: &AppState) {
     };
 
     let api: Api<NetworkPolicy> = Api::namespaced(client, &state.auth_netpol_namespace);
-    let patch = match &state.health_probe_cidr {
-        Some(probe_cidr) => json!({
+    let patch = if state.health_probe_cidrs.is_empty() {
+        json!({ "spec": { "ingress": [] } })
+    } else {
+        let probe_blocks: Vec<serde_json::Value> = state.health_probe_cidrs.iter()
+            .map(|c| json!({ "ipBlock": { "cidr": c } }))
+            .collect();
+        json!({
             "spec": {
                 "ingress": [{
-                    "from": [{ "ipBlock": { "cidr": probe_cidr } }],
+                    "from": probe_blocks,
                     "ports": [{ "port": 9001, "protocol": "TCP" }]
                 }]
             }
-        }),
-        None => json!({ "spec": { "ingress": [] } }),
+        })
     };
 
     match api
@@ -915,9 +923,14 @@ async fn main() {
     let auth_netpol_name = env::var("KCD_AUTH_NETPOL_NAME")
         .expect("KCD_AUTH_NETPOL_NAME must be set");
 
-    let health_probe_cidr = env::var("KCD_HEALTH_PROBE_CIDR").ok().filter(|s| !s.is_empty());
-    if let Some(ref cidr) = health_probe_cidr {
-        info!("Health-probe CIDR configured: {cidr} (permanent auth-netpol allow rule)");
+    let health_probe_cidrs: Vec<String> = env::var("KCD_ALWAYS_ALLOWED_CIDRS")
+        .unwrap_or_default()
+        .split(',')
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect();
+    if !health_probe_cidrs.is_empty() {
+        info!("Health-probe CIDRs configured: {:?} (permanent auth-netpol allow rules)", health_probe_cidrs);
     }
 
     info!(
@@ -939,7 +952,7 @@ async fn main() {
         key_path,
         auth_netpol_name,
         auth_netpol_namespace,
-        health_probe_cidr,
+        health_probe_cidrs,
         knock_progress: RwLock::new(HashMap::new()),
         knocked_ips: RwLock::new(HashMap::new()),
         authorized_ips: RwLock::new(HashMap::new()),
