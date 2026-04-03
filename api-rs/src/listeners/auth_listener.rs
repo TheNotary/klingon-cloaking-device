@@ -50,18 +50,17 @@ pub(crate) async fn run_auth_listener(state: Arc<AppState>) {
             // Remove from knocked set (one-time use).
             state.knocked_ips.write().await.remove(&src_ip);
 
-            // Revoke NetworkPolicy access now that the knock is consumed.
-            close_auth_port(&state, src_ip).await;
-
             let tls_stream =
                 match time::timeout(Duration::from_secs(10), acceptor.accept(stream)).await {
                     Ok(Ok(s)) => s,
                     Ok(Err(e)) => {
                         warn!("TLS handshake failed from {src_ip}: {e}");
+                        close_auth_port(&state, src_ip).await;
                         return;
                     }
                     Err(_) => {
                         warn!("TLS handshake timeout from {src_ip}");
+                        close_auth_port(&state, src_ip).await;
                         return;
                     }
                 };
@@ -70,6 +69,7 @@ pub(crate) async fn run_auth_listener(state: Arc<AppState>) {
             let mut reader = TokioBufReader::new(reader);
 
             if writer.write_all(b"Ready\n").await.is_err() {
+                close_auth_port(&state, src_ip).await;
                 return;
             }
 
@@ -82,10 +82,12 @@ pub(crate) async fn run_auth_listener(state: Arc<AppState>) {
             {
                 Ok(Ok(0)) | Err(_) => {
                     warn!("Auth timeout or disconnect from {src_ip}");
+                    close_auth_port(&state, src_ip).await;
                     return;
                 }
                 Ok(Err(e)) => {
                     warn!("Read error from {src_ip}: {e}");
+                    close_auth_port(&state, src_ip).await;
                     return;
                 }
                 Ok(Ok(_)) => {}
@@ -109,6 +111,9 @@ pub(crate) async fn run_auth_listener(state: Arc<AppState>) {
                 warn!("Access password mismatch from {src_ip}");
                 let _ = writer.write_all(b"DENIED\n").await;
             }
+
+            // Revoke NetworkPolicy access after the auth exchange is complete.
+            close_auth_port(&state, src_ip).await;
         });
     }
 }

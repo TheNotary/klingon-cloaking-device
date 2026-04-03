@@ -27,7 +27,7 @@ pub(crate) async fn sweep_knock_state(state: Arc<AppState>) {
 
         // Remove expired knocked IPs (older than TCP_ACCEPT_WINDOW_SECS)
         // and close their auth port in the NetworkPolicy.
-        {
+        let expired_knocked: Vec<IpAddr> = {
             let mut knocked = state.knocked_ips.write().await;
             let expired: Vec<IpAddr> = knocked
                 .iter()
@@ -37,8 +37,12 @@ pub(crate) async fn sweep_knock_state(state: Arc<AppState>) {
             for ip in &expired {
                 knocked.remove(ip);
             }
-            drop(knocked);
-            for ip in expired {
+            expired
+        };
+        for ip in expired_knocked {
+            // Re-check that the IP wasn't re-added by a new knock before closing.
+            let still_absent = !state.knocked_ips.read().await.contains_key(&ip);
+            if still_absent {
                 close_auth_port(&state, ip).await;
             }
         }
