@@ -39,17 +39,18 @@ cargo test
 # Create an alias
 alias kcd=./target/release/klingon-cloaking-device
 
+# With environment variables
+export KCD_KNOCK_PASSWORD=my-knock-secret
+export KCD_ACCESS_PASSWORD=my-access-secret
+# TODO: pull server from k8s service
+kcd authorize --server 1.2.3.4
+
 # Authorize your IP
 kcd authorize \
   --server 1.2.3.4 \
   --knock-password "my-knock-secret" \
   --access-password "my-access-secret" \
   --insecure
-
-# With environment variables
-export KCD_KNOCK_PASSWORD=my-knock-secret
-export KCD_ACCESS_PASSWORD=my-access-secret
-kcd authorize --server 1.2.3.4 --insecure
 
 # With a CA certificate
 kcd authorize \

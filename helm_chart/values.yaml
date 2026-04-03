@@ -47,7 +47,7 @@ tls:
   certManager:
     issuerName: "letsencrypt-prod"
     issuerKind: "ClusterIssuer"
-    dnsNames: []
+    dnsNames: ["kcd.example.com"]
 
   # secret mode: reference an existing kubernetes.io/tls Secret by name.
   secret:
