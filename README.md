@@ -6,10 +6,22 @@ With Klingon Cloaking Device, you can hide k8s services deployed behind an exter
 
 ### 1. Install the Klingon Cloaking Device Helm chart into your Cluster
 
+Generate a self-signed TLS certificate for the Quick Start (production deployments should use cert-manager or a real certificate — see [TLS Configuration](#tls-configuration)):
+
+```bash
+openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
+  -keyout tls.key -out tls.crt -days 365 -nodes -subj "/CN=klingon-cloaking-device"
+```
+
+Install with inline TLS:
+
 ```bash
 helm install kcd oci://ghcr.io/thenotary/charts/klingon-cloaking-device \
   --set secrets.knockPassword="my-knock-secret" \
-  --set secrets.accessPassword="my-access-secret"
+  --set secrets.accessPassword="my-access-secret" \
+  --set tls.mode=inline \
+  --set tls.inline.crt="$(base64 -w0 < tls.crt)" \
+  --set tls.inline.key="$(base64 -w0 < tls.key)"
 ```
 
 ### 2. Deploy the test SSH service
@@ -36,11 +48,16 @@ ssh-keyscan -p 22 -T 5 "$SSH_IP"
 
 ### 5. Install the CLI
 
+Download the latest binary from [GitHub Releases](https://github.com/thenotary/klingon-cloaking-device/releases):
+
 ```bash
-cd cli-rs
-cargo build --release
-alias kcd=./target/release/klingon-cloaking-device
+# Linux (amd64)
+curl -Lo kcd https://github.com/thenotary/klingon-cloaking-device/releases/latest/download/kcd-linux-amd64
+chmod +x kcd
+sudo mv kcd /usr/local/bin/
 ```
+
+Or build from source: `cd cli-rs && cargo build --release`
 
 ### 6. Authorize your IP
 
@@ -105,7 +122,7 @@ Pushing a semver tag triggers the GitHub Actions workflow which builds and publi
 
 ## TLS Configuration
 
-The server requires a TLS certificate and private key. The Helm chart supports three modes via `tls.mode`, plus the existing Azure Key Vault CSI path.
+The server requires a TLS certificate and private key. The Helm chart supports three modes via `tls.mode`.
 
 ### Option A: cert-manager (recommended)
 

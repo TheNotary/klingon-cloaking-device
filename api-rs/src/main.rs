@@ -874,10 +874,10 @@ async fn main() {
     }
 
     let cert_path = PathBuf::from(
-        env::var("KCD_TLS_CERT_PATH").unwrap_or_else(|_| "/mnt/secrets-store/kcd-tls-cert".into()),
+        env::var("KCD_TLS_CERT_PATH").unwrap_or_else(|_| "/certs/tls.crt".into()),
     );
     let key_path = PathBuf::from(
-        env::var("KCD_TLS_KEY_PATH").unwrap_or_else(|_| "/mnt/secrets-store/kcd-tls-key".into()),
+        env::var("KCD_TLS_KEY_PATH").unwrap_or_else(|_| "/certs/tls.key".into()),
     );
 
     let auth_netpol_namespace = env::var("KCD_NAMESPACE")

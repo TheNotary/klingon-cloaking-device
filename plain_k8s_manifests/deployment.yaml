@@ -12,7 +12,6 @@ spec:
     metadata:
       labels:
         app: klingon-cloaking-device
-        azure.workload.identity/use: "true"
     spec:
       serviceAccountName: klingon-cloaking-device
       containers:
@@ -62,13 +61,10 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
           volumeMounts:
-            - name: secrets-store
-              mountPath: /mnt/secrets-store
+            - name: tls-certs
+              mountPath: /certs
               readOnly: true
       volumes:
-        - name: secrets-store
-          csi:
-            driver: secrets-store.csi.k8s.io
-            readOnly: true
-            volumeAttributes:
-              secretProviderClass: klingon-cloaking-device-keyvault
+        - name: tls-certs
+          secret:
+            secretName: klingon-cloaking-device-tls  # <-- UPDATE: your kubernetes.io/tls Secret

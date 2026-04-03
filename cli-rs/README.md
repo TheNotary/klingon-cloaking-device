@@ -2,7 +2,26 @@
 
 The CLI binary: `klingon-cloaking-device`. Sends a knock sequence and authenticates over TLS to whitelist your IP on cloaked services.
 
-## Build
+## Install
+
+Download the latest binary from [GitHub Releases](https://github.com/thenotary/klingon-cloaking-device/releases):
+
+| Platform | Binary |
+|----------|--------|
+| Linux (amd64) | `kcd-linux-amd64` |
+| Linux (arm64) | `kcd-linux-arm64` |
+| macOS (amd64) | `kcd-darwin-amd64` |
+| macOS (arm64) | `kcd-darwin-arm64` |
+| Windows (amd64) | `kcd-windows-amd64.exe` |
+
+```bash
+# Example: Linux amd64
+curl -Lo kcd https://github.com/thenotary/klingon-cloaking-device/releases/latest/download/kcd-linux-amd64
+chmod +x kcd
+sudo mv kcd /usr/local/bin/
+```
+
+## Build from Source
 
 ```bash
 cargo build --release

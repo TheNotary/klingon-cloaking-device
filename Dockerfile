@@ -43,9 +43,7 @@ FROM alpine:3.21
 RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /build/api-rs/target/x86_64-unknown-linux-musl/release/klingon-cloaking-device-server /klingon-cloaking-device-server
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
 
 EXPOSE 9000/udp 9001
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/klingon-cloaking-device-server"]

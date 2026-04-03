@@ -15,7 +15,9 @@ spec:
     metadata:
       labels:
         app: {{ .Chart.Name }}
+        {{- if .Values.azureWorkloadIdentity.clientId }}
         azure.workload.identity/use: "true"
+        {{- end }}
     spec:
       serviceAccountName: {{ .Chart.Name }}
       containers:
@@ -66,32 +68,15 @@ spec:
               port: {{ .Values.ports.auth }}
             initialDelaySeconds: 5
             periodSeconds: 10
-          {{- if or .Values.secretProvider.enabled .Values.tls.mode }}
-          volumeMounts:
-          {{- if .Values.secretProvider.enabled }}
-            - name: secrets-store
-              mountPath: /mnt/secrets-store
-              readOnly: true
-          {{- end }}
           {{- if .Values.tls.mode }}
+          volumeMounts:
             - name: tls-certs
               mountPath: /certs
               readOnly: true
           {{- end }}
-          {{- end }}
-      {{- if or .Values.secretProvider.enabled .Values.tls.mode }}
-      volumes:
-      {{- if .Values.secretProvider.enabled }}
-        - name: secrets-store
-          csi:
-            driver: secrets-store.csi.k8s.io
-            readOnly: true
-            volumeAttributes:
-              secretProviderClass: {{ .Chart.Name }}-keyvault
-      {{- end }}
       {{- if .Values.tls.mode }}
+      volumes:
         - name: tls-certs
           secret:
             secretName: {{ if eq .Values.tls.mode "secret" }}{{ .Values.tls.secret.name }}{{ else }}{{ .Chart.Name }}-tls{{ end }}
-      {{- end }}
       {{- end }}

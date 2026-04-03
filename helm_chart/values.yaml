@@ -17,7 +17,7 @@ ports:
 
 resources:
   requests:
-    cpu: 50m
+    cpu: 5m
     memory: 64Mi
   limits:
     cpu: 200m
@@ -27,13 +27,11 @@ ipTtlHours: "24"
 
 serviceAccount:
   annotations: {}
-  # azure.workload.identity/client-id: "<client-id>"
 
-secretProvider:
-  enabled: false
-  clientID: ""
-  keyvaultName: ""
-  tenantID: ""
+# Set to your Azure managed identity client ID to enable Azure Workload Identity.
+# Leave empty to disable.
+azureWorkloadIdentity:
+  clientId: ""
 
 secrets:
   # Name of an existing K8s Secret containing kcd-knock-password and kcd-access-password keys.
@@ -43,7 +41,7 @@ secrets:
   accessPassword: ""
 
 tls:
-  # One of: certManager, secret, inline, or "" (disabled — use secretProvider or external mount)
+  # One of: certManager, secret, inline, or "" (disabled)
   mode: ""
 
   # cert-manager mode: creates a Certificate CR that provisions a TLS Secret.

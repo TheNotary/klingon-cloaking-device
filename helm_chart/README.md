@@ -18,40 +18,9 @@ helm upgrade kcd oci://ghcr.io/thenotary/charts/klingon-cloaking-device \
   --set image.tag="0.2.0"
 ```
 
-## Azure Key Vault Integration
-
-```bash
-helm install kcd oci://ghcr.io/thenotary/charts/klingon-cloaking-device \
-  --set secretProvider.enabled=true \
-  --set secretProvider.clientID="<WORKLOAD_IDENTITY_CLIENT_ID>" \
-  --set secretProvider.keyvaultName="<KEYVAULT_NAME>" \
-  --set secretProvider.tenantID="<TENANT_ID>" \
-  --set serviceAccount.annotations."azure\.workload\.identity/client-id"="<CLIENT_ID>"
-```
-
 ## Configuration
 
 See [values.yaml](values.yaml) for all configurable values.
-
-### Namespace
-
-By default, all resources are deployed into the Helm release namespace (the
-`--namespace` flag). To deploy into a different namespace, set
-`namespaceOverride`:
-
-```bash
-helm install kcd oci://ghcr.io/thenotary/charts/klingon-cloaking-device \
-  --namespace klingon-cloaking-device \
-  --create-namespace \
-  --set namespaceOverride=my-custom-ns \
-  --set secrets.knockPassword="<YOUR_KNOCK_PASSWORD>" \
-  --set secrets.accessPassword="<YOUR_ACCESS_PASSWORD>"
-```
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `namespaceOverride` | string | `""` | Override the release namespace for all resources |
-| `createNamespace` | bool | `true` | Create a Namespace resource with chart labels |
 
 ### TLS Values
 
@@ -64,6 +33,23 @@ helm install kcd oci://ghcr.io/thenotary/charts/klingon-cloaking-device \
 | `tls.secret.name` | string | `""` | Name of an existing `kubernetes.io/tls` Secret |
 | `tls.inline.crt` | string | `""` | Base64-encoded PEM certificate chain |
 | `tls.inline.key` | string | `""` | Base64-encoded PEM private key |
+
+### Azure Workload Identity
+
+To use [Azure Workload Identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview), supply your managed identity client ID:
+
+```bash
+helm install kcd oci://ghcr.io/thenotary/charts/klingon-cloaking-device \
+  --set secrets.knockPassword="<YOUR_KNOCK_PASSWORD>" \
+  --set secrets.accessPassword="<YOUR_ACCESS_PASSWORD>" \
+  --set azureWorkloadIdentity.clientId="<CLIENT_ID>" \
+  --set tls.mode=secret \
+  --set tls.secret.name=my-tls-secret
+```
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `azureWorkloadIdentity.clientId` | string | `""` | Azure managed identity client ID. When non-empty, adds the pod label and ServiceAccount annotation for Workload Identity |
 
 ## Release
 
