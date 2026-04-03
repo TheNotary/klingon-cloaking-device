@@ -1,5 +1,5 @@
 use crate::netpol::open_auth_port;
-use crate::state::{AppState, KnockProgress, MAX_KNOCK_PROGRESS_ENTRIES};
+use crate::{AppState, KnockProgress, MAX_KNOCK_PROGRESS_ENTRIES};
 use kcd_proto::{
     assemble_knock, KnockPacket, KNOCK_WINDOW_SECS, PROTOCOL_VERSION, TCP_ACCEPT_WINDOW_SECS,
 };

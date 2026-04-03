@@ -1,6 +1,6 @@
 use crate::netpol::close_auth_port;
 use crate::services::{remove_ip_from_services, CLOAK_SENTINEL_CIDR};
-use crate::state::{AppState, AuthorizedIp};
+use crate::{AppState, AuthorizedIp};
 use k8s_openapi::api::core::v1::Service;
 use kcd_proto::{KNOCK_WINDOW_SECS, TCP_ACCEPT_WINDOW_SECS};
 use kube::Api;

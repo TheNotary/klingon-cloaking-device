@@ -1,6 +1,6 @@
 use crate::netpol::close_auth_port;
 use crate::services::patch_services;
-use crate::state::AppState;
+use crate::AppState;
 use kcd_proto::TCP_ACCEPT_WINDOW_SECS;
 use std::{sync::Arc, time::Duration};
 use subtle::ConstantTimeEq;

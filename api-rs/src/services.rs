@@ -1,4 +1,4 @@
-use crate::state::{AppState, AuthorizedIp};
+use crate::{AppState, AuthorizedIp};
 use k8s_openapi::api::core::v1::Service;
 use kube::{
     api::{Patch, PatchParams},

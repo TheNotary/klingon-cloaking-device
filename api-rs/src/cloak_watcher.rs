@@ -1,6 +1,6 @@
 use crate::crd::CloakingDevice;
 use crate::services::{cloak_service, uncloak_service};
-use crate::state::AppState;
+use crate::AppState;
 use futures::StreamExt;
 use kube::{runtime::watcher, Api};
 use std::{sync::Arc, time::Duration};
