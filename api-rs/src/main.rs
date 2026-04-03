@@ -7,10 +7,10 @@ use std::{
 };
 use tokio::sync::RwLock;
 use tracing::{info, warn};
+use listeners::{auth_listener, knock_listener};
 
-mod auth;
+mod listeners;
 mod crd;
-mod knock;
 mod netpol;
 mod services;
 mod state;
@@ -136,8 +136,8 @@ async fn main() {
 
     // Launch all tasks concurrently.
     tokio::join!(
-        knock::run_knock_listener(state.clone()),
-        auth::run_auth_listener(state.clone()),
+        knock_listener::run_knock_listener(state.clone()),
+        auth_listener::run_auth_listener(state.clone()),
         sweeper::sweep_knock_state(state.clone()),
         sweeper::sweep_authorized_ips(state.clone()),
         watcher::watch_cloaking_devices(state.clone()),
