@@ -1,9 +1,0 @@
-{{- if .Values.createNamespace }}
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: {{ include "kcd.namespace" . }}
-  labels:
-    app.kubernetes.io/name: {{ .Chart.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end }}

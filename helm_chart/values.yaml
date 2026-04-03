@@ -1,7 +1,6 @@
 # Override the release namespace for all resources.
 # Leave empty to use the Helm release namespace (--namespace flag).
 namespaceOverride: ""
-createNamespace: true
 
 image:
   repository: ghcr.io/thenotary/klingon-cloaking-device-server
@@ -46,7 +45,7 @@ tls:
 
   # cert-manager mode: creates a Certificate CR that provisions a TLS Secret.
   certManager:
-    issuerName: ""
+    issuerName: "letsencrypt-prod"
     issuerKind: "ClusterIssuer"
     dnsNames: []
 
