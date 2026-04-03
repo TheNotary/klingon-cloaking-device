@@ -24,3 +24,29 @@ pub struct CloakingDeviceSpec {
 fn default_ttl_hours() -> Option<u32> {
     Some(24)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::CloakingDeviceSpec;
+
+    #[test]
+    fn crd_spec_deserializes() {
+        let json = serde_json::json!({
+            "serviceName": "my-svc",
+            "ttlHours": 12
+        });
+        let spec: CloakingDeviceSpec = serde_json::from_value(json).unwrap();
+        assert_eq!(spec.service_name, "my-svc");
+        assert_eq!(spec.ttl_hours, Some(12));
+    }
+
+    #[test]
+    fn crd_spec_default_ttl() {
+        let json = serde_json::json!({
+            "serviceName": "my-svc"
+        });
+        let spec: CloakingDeviceSpec = serde_json::from_value(json).unwrap();
+        assert_eq!(spec.service_name, "my-svc");
+        assert_eq!(spec.ttl_hours, Some(24));
+    }
+}
