@@ -13,5 +13,15 @@ spec:
       app: {{ .Chart.Name }}
   policyTypes:
     - Ingress
+  {{- if .Values.networkPolicy.healthProbeSourceCIDR }}
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: {{ .Values.networkPolicy.healthProbeSourceCIDR }}
+      ports:
+        - port: {{ .Values.ports.auth }}
+          protocol: TCP
+  {{- else }}
   ingress: []
+  {{- end }}
 {{- end }}

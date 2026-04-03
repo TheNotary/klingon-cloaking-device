@@ -9,4 +9,10 @@ spec:
       app: klingon-cloaking-device
   policyTypes:
     - Ingress
-  ingress: []
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: 168.63.129.16/32
+      ports:
+        - port: 9001
+          protocol: TCP

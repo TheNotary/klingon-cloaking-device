@@ -76,6 +76,9 @@ struct AppState {
     auth_netpol_name: String,
     /// Namespace where the auth NetworkPolicy lives.
     auth_netpol_namespace: String,
+    /// CIDR that should always be allowed in the auth NetworkPolicy
+    /// (e.g. Azure LB health-probe IP). None means no permanent rule.
+    health_probe_cidr: Option<String>,
 
     /// In-flight knock sequences: (src_ip, timestamp) → progress.
     knock_progress: RwLock<HashMap<(IpAddr, u64), KnockProgress>>,
@@ -527,7 +530,18 @@ async fn close_auth_port(state: &AppState, ip: IpAddr) {
     }
 
     let patch = if from_blocks.is_empty() {
-        json!({ "spec": { "ingress": [] } })
+        // No client IPs left — restore baseline with health-probe CIDR if configured.
+        match &state.health_probe_cidr {
+            Some(probe_cidr) => json!({
+                "spec": {
+                    "ingress": [{
+                        "from": [{ "ipBlock": { "cidr": probe_cidr } }],
+                        "ports": [{ "port": 9001, "protocol": "TCP" }]
+                    }]
+                }
+            }),
+            None => json!({ "spec": { "ingress": [] } }),
+        }
     } else {
         json!({
             "spec": {
@@ -563,7 +577,17 @@ async fn clean_auth_networkpolicy(state: &AppState) {
     };
 
     let api: Api<NetworkPolicy> = Api::namespaced(client, &state.auth_netpol_namespace);
-    let patch = json!({ "spec": { "ingress": [] } });
+    let patch = match &state.health_probe_cidr {
+        Some(probe_cidr) => json!({
+            "spec": {
+                "ingress": [{
+                    "from": [{ "ipBlock": { "cidr": probe_cidr } }],
+                    "ports": [{ "port": 9001, "protocol": "TCP" }]
+                }]
+            }
+        }),
+        None => json!({ "spec": { "ingress": [] } }),
+    };
 
     match api
         .patch(
@@ -891,6 +915,11 @@ async fn main() {
     let auth_netpol_name = env::var("KCD_AUTH_NETPOL_NAME")
         .expect("KCD_AUTH_NETPOL_NAME must be set");
 
+    let health_probe_cidr = env::var("KCD_HEALTH_PROBE_CIDR").ok().filter(|s| !s.is_empty());
+    if let Some(ref cidr) = health_probe_cidr {
+        info!("Health-probe CIDR configured: {cidr} (permanent auth-netpol allow rule)");
+    }
+
     info!(
         "Klingon Cloaking Device starting: CRD-driven target discovery, IP TTL = {ip_ttl_hours}h"
     );
@@ -910,6 +939,7 @@ async fn main() {
         key_path,
         auth_netpol_name,
         auth_netpol_namespace,
+        health_probe_cidr,
         knock_progress: RwLock::new(HashMap::new()),
         knocked_ips: RwLock::new(HashMap::new()),
         authorized_ips: RwLock::new(HashMap::new()),

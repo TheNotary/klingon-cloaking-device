@@ -60,3 +60,7 @@ tls:
 
 networkPolicy:
   enabled: true
+  # CIDR allowed to reach the auth port for health probes.
+  # Default is the Azure well-known health-probe IP.
+  # Set to "" to disable the permanent health-probe ingress rule.
+  healthProbeSourceCIDR: "168.63.129.16/32"
