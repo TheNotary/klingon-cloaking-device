@@ -12,7 +12,7 @@ use kube::{
 };
 use arc_swap::ArcSwap;
 use rustls::ServerConfig;
-use rustls_pemfile::{certs, pkcs8_private_keys};
+use rustls_pemfile::{certs, private_key};
 use serde_json::json;
 use std::{
     collections::HashMap,
@@ -93,19 +93,25 @@ fn load_tls_config_from_paths(
     cert_path: &std::path::Path,
     key_path: &std::path::Path,
 ) -> Result<Arc<ServerConfig>, Box<dyn std::error::Error>> {
+    info!("Loading TLS cert from {:?}, key from {:?}", cert_path, key_path);
+
     let cert_file = std::fs::File::open(cert_path)?;
     let key_file = std::fs::File::open(key_path)?;
 
     let certs_chain: Vec<_> = certs(&mut BufReader::new(cert_file))
         .collect::<Result<Vec<_>, _>>()?;
-    let private_key = pkcs8_private_keys(&mut BufReader::new(key_file))
-        .next()
-        .ok_or("No PKCS8 private key found in PEM file")??;
+    info!("TLS certificate chain: {} cert(s) loaded", certs_chain.len());
+
+    // Use private_key() which auto-detects PKCS#8, PKCS#1 (RSA), and SEC1 (EC) PEM formats.
+    let key = private_key(&mut BufReader::new(key_file))?
+        .ok_or("No private key found in PEM file (expected PKCS#8, PKCS#1, or SEC1/EC)")?;
+    info!("TLS private key loaded successfully");
 
     let config = ServerConfig::builder()
         .with_no_client_auth()
-        .with_single_cert(certs_chain, private_key.into())?;
+        .with_single_cert(certs_chain, key.into())?;
 
+    info!("TLS configuration built successfully");
     Ok(Arc::new(config))
 }
 
@@ -888,6 +894,8 @@ async fn main() {
     info!(
         "Klingon Cloaking Device starting: CRD-driven target discovery, IP TTL = {ip_ttl_hours}h"
     );
+    info!("TLS cert path: {}", cert_path.display());
+    info!("TLS key path: {}", key_path.display());
 
     let tls_config = load_tls_config_from_paths(&cert_path, &key_path)
         .unwrap_or_else(|e| panic!("Failed to load initial TLS config: {e}"));
@@ -1014,5 +1022,30 @@ mod tests {
 
         let config = load_tls_config_from_paths(&cert_path, &key_path);
         assert!(config.is_err());
+    }
+
+    #[test]
+    fn load_tls_config_with_ec_key() {
+        // Validates the cert-manager scenario where an EC (SEC1) key is generated.
+        let _ = rustls::crypto::ring::default_provider().install_default();
+
+        let key_pair = rcgen::KeyPair::generate_for(&rcgen::PKCS_ECDSA_P256_SHA256).unwrap();
+        let params = rcgen::CertificateParams::new(vec!["localhost".to_string()]).unwrap();
+        let cert = params.self_signed(&key_pair).unwrap();
+
+        let dir = tempfile::tempdir().unwrap();
+        let cert_path = dir.path().join("tls.crt");
+        let key_path = dir.path().join("tls.key");
+        std::fs::File::create(&cert_path)
+            .unwrap()
+            .write_all(cert.pem().as_bytes())
+            .unwrap();
+        std::fs::File::create(&key_path)
+            .unwrap()
+            .write_all(key_pair.serialize_pem().as_bytes())
+            .unwrap();
+
+        let config = load_tls_config_from_paths(&cert_path, &key_path);
+        assert!(config.is_ok(), "EC key should load; got: {:?}", config.err());
     }
 }
