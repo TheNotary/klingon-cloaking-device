@@ -1,7 +1,7 @@
 use crate::netpol::close_auth_port;
 use crate::services::patch_services;
 use crate::AppState;
-use kcd_proto::TCP_ACCEPT_WINDOW_SECS;
+use kcd_proto::{HANDSHAKE_AUTHORIZED, HANDSHAKE_DENIED, HANDSHAKE_READY, TCP_ACCEPT_WINDOW_SECS};
 use std::{net::SocketAddr, sync::Arc, time::Duration};
 use subtle::ConstantTimeEq;
 use tokio::{
@@ -75,7 +75,7 @@ pub async fn run_auth_listener(
             let (reader, mut writer) = tokio::io::split(tls_stream);
             let mut reader = TokioBufReader::new(reader);
 
-            if writer.write_all(b"Ready\n").await.is_err() {
+            if writer.write_all(HANDSHAKE_READY.as_bytes()).await.is_err() {
                 close_auth_port(&state, src_ip).await;
                 return;
             }
@@ -106,7 +106,7 @@ pub async fn run_auth_listener(
                 info!("Access password valid from {src_ip} — patching services");
                 match patch_services(&state, src_ip).await {
                     Ok(()) => {
-                        let _ = writer.write_all(b"AUTHORIZED\n").await;
+                        let _ = writer.write_all(HANDSHAKE_AUTHORIZED.as_bytes()).await;
                         info!("AUTHORIZED {src_ip}");
                     }
                     Err(e) => {
@@ -116,7 +116,7 @@ pub async fn run_auth_listener(
                 }
             } else {
                 warn!("Access password mismatch from {src_ip}");
-                let _ = writer.write_all(b"DENIED\n").await;
+                let _ = writer.write_all(HANDSHAKE_DENIED.as_bytes()).await;
             }
 
             // Revoke NetworkPolicy access after the auth exchange is complete.

@@ -4,6 +4,15 @@ pub const DEFAULT_KNOCK_PORT: u16 = 9000;
 /// Default TCP port for the TLS auth listener.
 pub const DEFAULT_AUTH_PORT: u16 = 9001;
 
+/// Handshake message: server is ready for the access password.
+pub const HANDSHAKE_READY: &str = "Ready\n";
+
+/// Handshake message: access password accepted, IP whitelisted.
+pub const HANDSHAKE_AUTHORIZED: &str = "AUTHORIZED\n";
+
+/// Handshake message: access password rejected.
+pub const HANDSHAKE_DENIED: &str = "DENIED\n";
+
 /// Protocol version for knock packets.
 pub const PROTOCOL_VERSION: u8 = 1;
 

@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: klingon-cloaking-device
   namespace: klingon-cloaking-device
+  labels:
+    app.kubernetes.io/name: klingon-cloaking-device
 spec:
   replicas: 1
   selector:
@@ -17,6 +19,7 @@ spec:
       containers:
         - name: klingon-cloaking-device
           image: ghcr.io/thenotary/klingon-cloaking-device-server:latest # <-- UPDATE
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9000
               protocol: UDP
@@ -44,10 +47,11 @@ spec:
             - name: KCD_AUTH_NETPOL_NAME
               value: klingon-cloaking-device-auth-netpol
             - name: KCD_ALWAYS_ALLOWED_CIDRS
+              # Azure-specific defaults — adjust for your cloud provider.
               value: "168.63.129.16/32,10.224.0.0/16"
           resources:
             requests:
-              cpu: 50m
+              cpu: 5m
               memory: 64Mi
             limits:
               cpu: 200m

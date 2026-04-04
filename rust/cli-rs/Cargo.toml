@@ -1,0 +1,20 @@
+[package]
+name = "klingon-cloaking-device"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "klingon-cloaking-device"
+path = "src/main.rs"
+
+[dependencies]
+kcd-proto.workspace = true
+tokio.workspace = true
+rustls.workspace = true
+tokio-rustls.workspace = true
+rustls-pemfile.workspace = true
+clap.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+webpki-roots.workspace = true
+

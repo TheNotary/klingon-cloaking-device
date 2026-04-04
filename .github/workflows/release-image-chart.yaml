@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Normalize owner to lowercase
         run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
@@ -39,9 +39,7 @@ jobs:
 
       - name: Stamp crate versions
         run: |
-          for toml in api-rs/Cargo.toml cli-rs/Cargo.toml kcd-proto/Cargo.toml; do
-            sed -i "s/^version = \".*\"/version = \"${{ steps.version.outputs.VERSION }}\"/" "$toml"
-          done
+          sed -i "s/^version = \".*\"/version = \"${{ steps.version.outputs.VERSION }}\"/" rust/Cargo.toml
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -60,7 +58,7 @@ jobs:
     needs: build-and-push-container
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Normalize owner to lowercase
         run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
@@ -75,7 +73,7 @@ jobs:
           sed -i "s/^appVersion: .*/appVersion: ${{ steps.version.outputs.VERSION }}/" helm_chart/Chart.yaml
 
       - name: Set up Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
       - name: Log in to GHCR for Helm
         run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin

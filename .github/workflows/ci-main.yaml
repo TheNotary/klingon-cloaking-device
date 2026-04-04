@@ -21,13 +21,13 @@ jobs:
       matrix:
         crate:
           - name: api-rs
-            manifest: api-rs/Cargo.toml
+            manifest: rust/api-rs/Cargo.toml
           - name: cli-rs
-            manifest: cli-rs/Cargo.toml
+            manifest: rust/cli-rs/Cargo.toml
           - name: kcd-proto
-            manifest: kcd-proto/Cargo.toml
+            manifest: rust/kcd-proto/Cargo.toml
           - name: integration-tests
-            manifest: integration-tests/Cargo.toml
+            manifest: rust/integration-tests/Cargo.toml
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -39,10 +39,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: |
-            api-rs -> target
-            cli-rs -> target
-            kcd-proto -> target
-            integration-tests -> target
+            rust -> target
 
       - name: Build
         run: cargo build --release --manifest-path "${{ matrix.crate.manifest }}"

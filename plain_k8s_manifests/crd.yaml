@@ -2,6 +2,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: cloakingdevices.klingon-cloaking-device.thenotary.github.io
+  labels:
+    app.kubernetes.io/name: klingon-cloaking-device
 spec:
   group: klingon-cloaking-device.thenotary.github.io
   names:

@@ -1,23 +1,24 @@
-[package]
-name = "klingon-cloaking-device-server"
+[workspace]
+members = [
+    "api-rs",
+    "cli-rs",
+    "kcd-proto",
+    "integration-tests",
+]
+resolver = "2"
+
+[workspace.package]
 version = "0.0.0-dev"
 edition = "2021"
 
-[lib]
-name = "kcd_server"
-path = "src/lib.rs"
-
-[[bin]]
-name = "klingon-cloaking-device-server"
-path = "src/main.rs"
-
-[dependencies]
-kcd-proto = { path = "../kcd-proto" }
+[workspace.dependencies]
+kcd-proto = { path = "kcd-proto" }
+kcd-server = { path = "api-rs", package = "klingon-cloaking-device-server" }
 tokio = { version = "1", features = ["full"] }
 rustls = { version = "0.23", default-features = false, features = ["ring", "logging", "std"] }
-tokio-rustls = { version = "0.26" }
+tokio-rustls = "0.26"
 rustls-pemfile = "2"
-kube = { version = "0.98", default-features = false, features = ["client", "rustls-tls", "derive", "runtime"] }
+kube = { version = "0.98", default-features = false }
 k8s-openapi = { version = "0.24", features = ["v1_32"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -27,7 +28,11 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 subtle = "2"
 arc-swap = "1"
-
-[dev-dependencies]
+clap = { version = "4", features = ["derive", "env"] }
+webpki-roots = "0.26"
 rcgen = "0.13"
 tempfile = "3"
+tower = "0.5"
+http = "1"
+http-body-util = "0.1"
+hyper = "1"

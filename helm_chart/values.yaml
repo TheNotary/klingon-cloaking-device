@@ -61,7 +61,7 @@ tls:
 networkPolicy:
   enabled: true
   # CIDRs permanently allowed to reach the auth port (for health probes).
-  # Defaults include the Azure LB health-probe IP and the AKS default node subnet.
+  # These defaults are Azure-specific — adjust for your cloud provider.
   # The node subnet entry is needed so kubelet readiness probes can reach port 9001;
   # without it the pod is marked NotReady and the LB drops all TCP traffic.
   # Set to [] to disable (not recommended on Azure).

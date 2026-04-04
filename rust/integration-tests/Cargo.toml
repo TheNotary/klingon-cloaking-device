@@ -1,0 +1,25 @@
+[package]
+name = "integration-tests"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[dependencies]
+kcd-server.workspace = true
+kcd-proto.workspace = true
+tokio.workspace = true
+rustls.workspace = true
+tokio-rustls.workspace = true
+kube = { workspace = true, features = ["client", "rustls-tls"] }
+k8s-openapi.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tower.workspace = true
+http.workspace = true
+http-body-util.workspace = true
+hyper.workspace = true
+rcgen.workspace = true
+tempfile.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+arc-swap.workspace = true

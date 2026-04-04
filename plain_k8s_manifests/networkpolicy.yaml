@@ -3,6 +3,8 @@ kind: NetworkPolicy
 metadata:
   name: klingon-cloaking-device-netpol
   namespace: klingon-cloaking-device
+  labels:
+    app.kubernetes.io/name: klingon-cloaking-device
 spec:
   podSelector:
     matchLabels:

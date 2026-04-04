@@ -1,7 +1,7 @@
 use clap::Parser;
 use kcd_proto::{
     split_knock, KnockPacket, DEFAULT_AUTH_PORT, DEFAULT_KNOCK_CHUNKS, DEFAULT_KNOCK_PORT,
-    PROTOCOL_VERSION,
+    HANDSHAKE_AUTHORIZED, HANDSHAKE_DENIED, HANDSHAKE_READY, PROTOCOL_VERSION,
 };
 use rustls::pki_types::ServerName;
 use rustls::ClientConfig;
@@ -242,7 +242,7 @@ async fn authorize(args: AuthorizeArgs) -> Result<(), Box<dyn std::error::Error>
     let mut line = String::new();
     reader.read_line(&mut line).await?;
     let response = line.trim();
-    if response != "Ready" {
+    if response != HANDSHAKE_READY.trim() {
         return Err(format!("Unexpected server response: {response}").into());
     }
     info!("Server ready. Sending access password...");
@@ -258,11 +258,11 @@ async fn authorize(args: AuthorizeArgs) -> Result<(), Box<dyn std::error::Error>
     let result = line.trim();
 
     match result {
-        "AUTHORIZED" => {
-            info!("AUTHORIZED — your IP has been whitelisted.");
+        s if s == HANDSHAKE_AUTHORIZED.trim() => {
+            info!("AUTHORIZED \u{2014} your IP has been whitelisted.");
             Ok(())
         }
-        "DENIED" => Err("DENIED — access password was incorrect.".into()),
+        s if s == HANDSHAKE_DENIED.trim() => Err("DENIED \u{2014} access password was incorrect.".into()),
         other => Err(format!("Unexpected response: {other}").into()),
     }
 }

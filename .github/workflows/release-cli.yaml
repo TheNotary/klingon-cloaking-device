@@ -57,27 +57,25 @@ jobs:
       - name: Stamp crate versions
         shell: bash
         run: |
-          for toml in cli-rs/Cargo.toml kcd-proto/Cargo.toml; do
-            sed -i.bak "s/^version = \".*\"/version = \"${{ steps.version.outputs.VERSION }}\"/" "$toml"
-          done
+          sed -i.bak "s/^version = \".*\"/version = \"${{ steps.version.outputs.VERSION }}\"/" rust/Cargo.toml
 
       - name: Build (native)
         if: matrix.target != 'aarch64-unknown-linux-musl'
         shell: bash
-        run: cargo build --release --manifest-path cli-rs/Cargo.toml --target ${{ matrix.target }}
+        run: cargo build --release --manifest-path rust/cli-rs/Cargo.toml --target ${{ matrix.target }}
 
       - name: Build (cross — Linux ARM64)
         if: matrix.target == 'aarch64-unknown-linux-musl'
         shell: bash
-        run: cross build --release --manifest-path cli-rs/Cargo.toml --target ${{ matrix.target }}
+        run: cross build --release --manifest-path rust/cli-rs/Cargo.toml --target ${{ matrix.target }}
 
       - name: Rename binary (Unix)
         if: runner.os != 'Windows'
-        run: cp target/${{ matrix.target }}/release/klingon-cloaking-device ${{ matrix.artifact }}
+        run: cp rust/target/${{ matrix.target }}/release/klingon-cloaking-device ${{ matrix.artifact }}
 
       - name: Rename binary (Windows)
         if: runner.os == 'Windows'
-        run: copy target\${{ matrix.target }}\release\klingon-cloaking-device.exe ${{ matrix.artifact }}
+        run: copy rust\target\${{ matrix.target }}\release\klingon-cloaking-device.exe ${{ matrix.artifact }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6

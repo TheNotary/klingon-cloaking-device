@@ -1,6 +1,6 @@
 # Klingon Cloaking Device (KCD)
 
-With Klingon Cloaking Device, you can hide k8s services deployed behind an external load balancer from scanners. The cloaking device restricts access to `loadBalancerSourceRanges` on target services — only IPs that complete a port-knock sequence and TLS authentication are whitelisted.
+With Klingon Cloaking Device, you can hide k8s services deployed behind an external load balancer from scanners. The cloaking device restricts access via `loadBalancerSourceRanges` on target services — only IPs that complete a port-knock sequence and TLS authentication are whitelisted.
 
 ## Quick Start — Hide an SSH Service
 
@@ -57,7 +57,7 @@ chmod +x kcd
 sudo mv kcd /usr/local/bin/
 ```
 
-Or build from source: `cd cli-rs && cargo build --release`
+Or build from source: `cd rust/cli-rs && cargo build --release`
 
 ### 6. Authorize your IP
 
@@ -106,7 +106,7 @@ docker run --rm \
 
 ## Build & Test
 
-This is a Cargo workspace with four crates:
+This is a Cargo workspace with four crates (under `rust/`):
 
 | Crate | Description |
 |---|---|
@@ -117,6 +117,7 @@ This is a Cargo workspace with four crates:
 
 ```bash
 # Build all crates
+cd rust
 cargo build --workspace
 
 # Run all tests (unit + integration)
@@ -192,6 +193,6 @@ The server automatically detects when certificate files change on disk (e.g. aft
 |-----------|-------------|
 | [helm_chart/](helm_chart/README.md) | Helm chart for deploying into a Kubernetes cluster |
 | [plain_k8s_manifests/](plain_k8s_manifests/README.md) | YAML manifests for manual deployment |
-| [api-rs/](api-rs/README.md)     | Server binary (`klingon-cloaking-device-server`) |
-| [cli-rs/](cli-rs/README.md)     | CLI binary (`klingon-cloaking-device`) |
+| [rust/api-rs/](rust/api-rs/README.md)     | Server binary (`klingon-cloaking-device-server`) |
+| [rust/cli-rs/](rust/cli-rs/README.md)     | CLI binary (`klingon-cloaking-device`) |
 | [integration_test/](integration_test/README.md) | SSH service and CloakingDevice CR for testing |
