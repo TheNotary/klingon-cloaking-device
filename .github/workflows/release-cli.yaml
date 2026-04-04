@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
@@ -64,24 +64,20 @@ jobs:
       - name: Build (native)
         if: matrix.target != 'aarch64-unknown-linux-musl'
         shell: bash
-        run: |
-          cd cli-rs
-          cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --manifest-path cli-rs/Cargo.toml --target ${{ matrix.target }}
 
       - name: Build (cross — Linux ARM64)
         if: matrix.target == 'aarch64-unknown-linux-musl'
         shell: bash
-        run: |
-          cd cli-rs
-          cross build --release --target ${{ matrix.target }}
+        run: cross build --release --manifest-path cli-rs/Cargo.toml --target ${{ matrix.target }}
 
       - name: Rename binary (Unix)
         if: runner.os != 'Windows'
-        run: cp cli-rs/target/${{ matrix.target }}/release/klingon-cloaking-device ${{ matrix.artifact }}
+        run: cp target/${{ matrix.target }}/release/klingon-cloaking-device ${{ matrix.artifact }}
 
       - name: Rename binary (Windows)
         if: runner.os == 'Windows'
-        run: copy cli-rs\target\${{ matrix.target }}\release\klingon-cloaking-device.exe ${{ matrix.artifact }}
+        run: copy target\${{ matrix.target }}\release\klingon-cloaking-device.exe ${{ matrix.artifact }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
