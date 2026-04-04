@@ -2,7 +2,7 @@ use crate::netpol::close_auth_port;
 use crate::services::patch_services;
 use crate::AppState;
 use kcd_proto::TCP_ACCEPT_WINDOW_SECS;
-use std::{sync::Arc, time::Duration};
+use std::{net::SocketAddr, sync::Arc, time::Duration};
 use subtle::ConstantTimeEq;
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader as TokioBufReader},
@@ -12,11 +12,18 @@ use tokio::{
 use tokio_rustls::TlsAcceptor;
 use tracing::{debug, error, info, warn};
 
-pub(crate) async fn run_auth_listener(state: Arc<AppState>) {
-    let listener = TcpListener::bind("0.0.0.0:9001")
+pub async fn run_auth_listener(
+    state: Arc<AppState>,
+    bound_addr_tx: Option<tokio::sync::oneshot::Sender<SocketAddr>>,
+) {
+    let listener = TcpListener::bind(&state.auth_bind_addr)
         .await
-        .expect("Failed to bind TCP :9001");
-    info!("TLS auth listener on :9001");
+        .unwrap_or_else(|e| panic!("Failed to bind TCP {}: {e}", state.auth_bind_addr));
+    let local_addr = listener.local_addr().expect("Failed to get local TCP address");
+    info!("TLS auth listener on {local_addr}");
+    if let Some(tx) = bound_addr_tx {
+        let _ = tx.send(local_addr);
+    }
 
     loop {
         let (stream, src) = match listener.accept().await {

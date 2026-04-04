@@ -4,6 +4,7 @@ use kcd_proto::{
     assemble_knock, KnockPacket, KNOCK_WINDOW_SECS, PROTOCOL_VERSION, TCP_ACCEPT_WINDOW_SECS,
 };
 use std::{
+    net::SocketAddr,
     sync::Arc,
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
@@ -11,11 +12,18 @@ use subtle::ConstantTimeEq;
 use tokio::net::UdpSocket;
 use tracing::{debug, info, warn};
 
-pub(crate) async fn run_knock_listener(state: Arc<AppState>) {
-    let sock = UdpSocket::bind("0.0.0.0:9000")
+pub async fn run_knock_listener(
+    state: Arc<AppState>,
+    bound_addr_tx: Option<tokio::sync::oneshot::Sender<SocketAddr>>,
+) {
+    let sock = UdpSocket::bind(&state.knock_bind_addr)
         .await
-        .expect("Failed to bind UDP :9000");
-    info!("UDP knock listener on :9000");
+        .unwrap_or_else(|e| panic!("Failed to bind UDP {}: {e}", state.knock_bind_addr));
+    let local_addr = sock.local_addr().expect("Failed to get local UDP address");
+    info!("UDP knock listener on {local_addr}");
+    if let Some(tx) = bound_addr_tx {
+        let _ = tx.send(local_addr);
+    }
 
     let mut buf = [0u8; 1500];
     loop {

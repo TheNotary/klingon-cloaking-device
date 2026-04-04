@@ -11,10 +11,10 @@ use tracing::{info, warn};
 /// Sentinel CIDR used to block all traffic through a LoadBalancer while still
 /// keeping the `loadBalancerSourceRanges` field populated. No real client will
 /// have this source IP, so the allowlist effectively denies everything.
-pub(crate) const CLOAK_SENTINEL_CIDR: &str = "255.255.255.255/32";
+pub const CLOAK_SENTINEL_CIDR: &str = "255.255.255.255/32";
 
-pub(crate) async fn patch_services(state: &AppState, ip: IpAddr) -> Result<(), kube::Error> {
-    let client = kube::Client::try_default().await?;
+pub async fn patch_services(state: &AppState, ip: IpAddr) -> Result<(), kube::Error> {
+    let client = state.kube_client.clone();
     let cidr = format!("{ip}/32");
     let targets = state.target_services.read().await;
 
@@ -60,7 +60,7 @@ pub(crate) async fn patch_services(state: &AppState, ip: IpAddr) -> Result<(), k
     Ok(())
 }
 
-pub(crate) async fn remove_ip_from_services(
+pub async fn remove_ip_from_services(
     client: &kube::Client,
     targets: &[(String, String)],
     ip: IpAddr,
@@ -113,7 +113,7 @@ pub(crate) async fn remove_ip_from_services(
 
 /// Set a Service's `loadBalancerSourceRanges` to the cloaked baseline:
 /// the deny-all sentinel plus any always-allowed CIDRs (health probes, etc.).
-pub(crate) async fn cloak_service(
+pub async fn cloak_service(
     client: &kube::Client,
     ns: &str,
     svc_name: &str,
@@ -140,7 +140,7 @@ pub(crate) async fn cloak_service(
 
 /// Remove `loadBalancerSourceRanges` from a Service entirely, restoring open
 /// connectivity. Used when a CloakingDevice CR is deleted.
-pub(crate) async fn uncloak_service(client: &kube::Client, ns: &str, svc_name: &str) {
+pub async fn uncloak_service(client: &kube::Client, ns: &str, svc_name: &str) {
     let api: Api<Service> = Api::namespaced(client.clone(), ns);
     let patch = json!({ "spec": { "loadBalancerSourceRanges": null } });
 

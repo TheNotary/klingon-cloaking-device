@@ -9,14 +9,8 @@ use std::net::IpAddr;
 use tracing::{info, warn};
 
 /// Open TCP 9001 in the auth NetworkPolicy for the given IP.
-pub(crate) async fn open_auth_port(state: &AppState, ip: IpAddr) {
-    let client = match kube::Client::try_default().await {
-        Ok(c) => c,
-        Err(e) => {
-            warn!("Failed to create K8s client for open_auth_port: {e}");
-            return;
-        }
-    };
+pub async fn open_auth_port(state: &AppState, ip: IpAddr) {
+    let client = state.kube_client.clone();
 
     let cidr = format!("{ip}/32");
     let api: Api<NetworkPolicy> = Api::namespaced(client, &state.auth_netpol_namespace);
@@ -74,14 +68,8 @@ pub(crate) async fn open_auth_port(state: &AppState, ip: IpAddr) {
 }
 
 /// Close TCP 9001 in the auth NetworkPolicy for the given IP.
-pub(crate) async fn close_auth_port(state: &AppState, ip: IpAddr) {
-    let client = match kube::Client::try_default().await {
-        Ok(c) => c,
-        Err(e) => {
-            warn!("Failed to create K8s client for close_auth_port: {e}");
-            return;
-        }
-    };
+pub async fn close_auth_port(state: &AppState, ip: IpAddr) {
+    let client = state.kube_client.clone();
 
     let cidr = format!("{ip}/32");
     let api: Api<NetworkPolicy> = Api::namespaced(client, &state.auth_netpol_namespace);
@@ -154,14 +142,8 @@ pub(crate) async fn close_auth_port(state: &AppState, ip: IpAddr) {
 }
 
 /// Reset the auth NetworkPolicy to empty ingress (used on startup for crash recovery).
-pub(crate) async fn clean_auth_networkpolicy(state: &AppState) {
-    let client = match kube::Client::try_default().await {
-        Ok(c) => c,
-        Err(e) => {
-            warn!("Failed to create K8s client for auth NP cleanup: {e}");
-            return;
-        }
-    };
+pub async fn clean_auth_networkpolicy(state: &AppState) {
+    let client = state.kube_client.clone();
 
     let api: Api<NetworkPolicy> = Api::namespaced(client, &state.auth_netpol_namespace);
     let patch = if state.health_probe_cidrs.is_empty() {

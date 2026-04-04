@@ -10,7 +10,7 @@ use std::{
 use tokio::time;
 use tracing::{info, warn};
 
-pub(crate) fn load_tls_config_from_paths(
+pub fn load_tls_config_from_paths(
     cert_path: &std::path::Path,
     key_path: &std::path::Path,
 ) -> Result<Arc<ServerConfig>, Box<dyn std::error::Error>> {
@@ -39,7 +39,7 @@ pub(crate) fn load_tls_config_from_paths(
 /// Poll cert/key files for changes and reload TLS config when modified.
 /// Uses mtime polling because inotify is unreliable on volume-mounted Secrets
 /// (kubelet uses symlink swaps that don't always trigger MODIFY events).
-pub(crate) async fn run_cert_watcher(state: Arc<AppState>) {
+pub async fn run_cert_watcher(state: Arc<AppState>) {
     let mut interval = time::interval(Duration::from_secs(30));
     let mut last_mtime: Option<(SystemTime, SystemTime)> = None;
 
