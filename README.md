@@ -87,7 +87,37 @@ ssh-keyscan -p 22 -T 5 "$SSH_IP"
 
 ---
 
-## Docker
+## Directory Structure
+
+```bash
+├── Dockerfile              # Builds the server container image
+│
+├── docs/                   # Architecture diagrams and design docs
+│
+├── helm_chart/             # Helm chart for deploying into a Kubernetes cluster
+│
+├── integration_test/       # Testing resources to support README's quick start
+│
+├── plain_k8s_manifests/    # Plain (untested) YAML if Helm is a bad fit
+│
+└── rust/
+    ├── api-rs/             # Server binary
+    ├── cli-rs/             # CLI binary
+    ├── integration-tests/  # Integration tests with mock K8s API
+    └── kcd-proto/          # Shared protocol types
+```
+
+---
+
+## Helm Chart
+
+See [helm_chart/README.md](helm_chart/README.md) for installation and configuration instructions.
+
+## CLI
+
+See [rust/cli-rs/README.md](rust/cli-rs/README.md) for installation and usage instructions once your Helm chart has been successfully deployed.
+
+## Container Build & Run
 
 ```bash
 # Build the container image
@@ -104,16 +134,7 @@ docker run --rm \
   klingon-cloaking-device-server
 ```
 
-## Build & Test
-
-This is a Cargo workspace with four crates (under `rust/`):
-
-| Crate | Description |
-|---|---|
-| `api-rs` | K8s operator server (binary + `kcd_server` library) |
-| `cli-rs` | CLI client binary |
-| `kcd-proto` | Shared knock protocol types |
-| `integration-tests` | Integration tests with mock K8s API |
+## Rust Build & Test
 
 ```bash
 # Build all crates
@@ -138,61 +159,5 @@ Pushing a semver tag triggers the GitHub Actions workflow which builds and publi
 
 - Chart: `oci://ghcr.io/TheNotary/charts`
 - Container: `ghcr.io/TheNotary/klingon-cloaking-device-server:<version>`
+- See GitHub Releases for binaries
 
-## TLS Configuration
-
-The server requires a TLS certificate and private key. The Helm chart supports three modes via `tls.mode`.
-
-### Option A: cert-manager (recommended)
-
-If [cert-manager](https://cert-manager.io) is installed in your cluster, set `tls.mode=certManager` and the chart will create a `Certificate` CR. cert-manager provisions the cert and stores it in a Kubernetes Secret automatically.
-
-```bash
-helm install kcd oci://ghcr.io/thenotary/charts/klingon-cloaking-device \
-  --set secrets.knockPassword="my-knock-secret" \
-  --set secrets.accessPassword="my-access-secret" \
-  --set tls.mode=certManager \
-  --set tls.certManager.issuerName=letsencrypt-prod \
-  --set tls.certManager.issuerKind=ClusterIssuer
-```
-
-### Option B: Existing Kubernetes TLS Secret
-
-Reference a pre-existing `kubernetes.io/tls` Secret:
-
-```bash
-helm install kcd oci://ghcr.io/thenotary/charts/klingon-cloaking-device \
-  --set secrets.knockPassword="my-knock-secret" \
-  --set secrets.accessPassword="my-access-secret" \
-  --set tls.mode=secret \
-  --set tls.secret.name=my-existing-tls-secret
-```
-
-### Option C: Inline certificate
-
-Provide base64-encoded PEM certificate chain and private key directly:
-
-```bash
-helm install kcd oci://ghcr.io/thenotary/charts/klingon-cloaking-device \
-  --set secrets.knockPassword="my-knock-secret" \
-  --set secrets.accessPassword="my-access-secret" \
-  --set tls.mode=inline \
-  --set tls.inline.crt="$(base64 -w0 < tls.crt)" \
-  --set tls.inline.key="$(base64 -w0 < tls.key)"
-```
-
-### Certificate Hot-Reload
-
-The server automatically detects when certificate files change on disk (e.g. after cert-manager renewal or Secret rotation) and reloads the TLS configuration without a pod restart. File changes are detected via polling every 30 seconds.
-
----
-
-## Components
-
-| Directory | Description |
-|-----------|-------------|
-| [helm_chart/](helm_chart/README.md) | Helm chart for deploying into a Kubernetes cluster |
-| [plain_k8s_manifests/](plain_k8s_manifests/README.md) | YAML manifests for manual deployment |
-| [rust/api-rs/](rust/api-rs/README.md)     | Server binary (`klingon-cloaking-device-server`) |
-| [rust/cli-rs/](rust/cli-rs/README.md)     | CLI binary (`klingon-cloaking-device`) |
-| [integration_test/](integration_test/README.md) | SSH service and CloakingDevice CR for testing |
