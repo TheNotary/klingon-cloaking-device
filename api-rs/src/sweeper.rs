@@ -13,7 +13,7 @@ use tokio::time;
 use tracing::{info, warn};
 
 /// Sweep stale knock progress and expired knocked IPs.
-pub(crate) async fn sweep_knock_state(state: Arc<AppState>) {
+pub async fn sweep_knock_state(state: Arc<AppState>) {
     let mut interval = time::interval(Duration::from_secs(5));
     loop {
         interval.tick().await;
@@ -50,58 +50,55 @@ pub(crate) async fn sweep_knock_state(state: Arc<AppState>) {
 }
 
 /// Periodically remove expired authorized IPs from target Services.
-pub(crate) async fn sweep_authorized_ips(state: Arc<AppState>) {
+pub async fn sweep_authorized_ips(state: Arc<AppState>) {
     if state.ip_ttl_hours == 0 {
         info!("IP TTL is 0 — authorized IPs never expire");
         return;
     }
 
-    let ttl = Duration::from_secs(state.ip_ttl_hours * 3600);
     let mut interval = time::interval(Duration::from_secs(300)); // Check every 5 minutes.
 
     loop {
         interval.tick().await;
+        sweep_authorized_ips_once(&state).await;
+    }
+}
 
-        let expired: Vec<IpAddr> = {
-            let ips = state.authorized_ips.read().await;
-            ips.iter()
-                .filter(|(_, auth)| auth.authorized_at.elapsed() >= ttl)
-                .map(|(ip, _)| *ip)
-                .collect()
-        };
+/// Run a single sweep iteration: find and remove expired authorized IPs.
+pub async fn sweep_authorized_ips_once(state: &AppState) {
+    if state.ip_ttl_hours == 0 {
+        return;
+    }
 
-        if expired.is_empty() {
-            continue;
-        }
+    let ttl = Duration::from_secs(state.ip_ttl_hours * 3600);
 
-        let client = match kube::Client::try_default().await {
-            Ok(c) => c,
-            Err(e) => {
-                warn!("Failed to create K8s client for IP sweep: {e}");
-                continue;
-            }
-        };
+    let expired: Vec<IpAddr> = {
+        let ips = state.authorized_ips.read().await;
+        ips.iter()
+            .filter(|(_, auth)| auth.authorized_at.elapsed() >= ttl)
+            .map(|(ip, _)| *ip)
+            .collect()
+    };
 
-        for ip in &expired {
-            info!("IP {ip} TTL expired — removing from target services");
-            let targets = state.target_services.read().await;
-            remove_ip_from_services(&client, &targets, *ip, &state.health_probe_cidrs).await;
-            drop(targets);
-            state.authorized_ips.write().await.remove(ip);
-        }
+    if expired.is_empty() {
+        return;
+    }
+
+    let client = state.kube_client.clone();
+
+    for ip in &expired {
+        info!("IP {ip} TTL expired — removing from target services");
+        let targets = state.target_services.read().await;
+        remove_ip_from_services(&client, &targets, *ip, &state.health_probe_cidrs).await;
+        drop(targets);
+        state.authorized_ips.write().await.remove(ip);
     }
 }
 
 /// On startup, read existing loadBalancerSourceRanges from target services
 /// and seed the authorized_ips map so TTL tracking works across restarts.
-pub(crate) async fn seed_authorized_ips(state: &AppState) {
-    let client = match kube::Client::try_default().await {
-        Ok(c) => c,
-        Err(e) => {
-            warn!("Failed to create K8s client for seeding authorized IPs: {e}");
-            return;
-        }
-    };
+pub async fn seed_authorized_ips(state: &AppState) {
+    let client = state.kube_client.clone();
 
     let targets = state.target_services.read().await;
     for (ns, name) in targets.iter() {

@@ -102,10 +102,28 @@ docker run --rm \
   -v /path/to/certs:/certs:ro \
   -p 9000:9000/udp -p 9001:9001 \
   klingon-cloaking-device-server
+```
 
-# Push to a registry
-docker tag klingon-cloaking-device-server ghcr.io/thenotary/klingon-cloaking-device-server:0.1.0
-docker push ghcr.io/thenotary/klingon-cloaking-device-server:0.1.0
+## Build & Test
+
+This is a Cargo workspace with four crates:
+
+| Crate | Description |
+|---|---|
+| `api-rs` | K8s operator server (binary + `kcd_server` library) |
+| `cli-rs` | CLI client binary |
+| `kcd-proto` | Shared knock protocol types |
+| `integration-tests` | Integration tests with mock K8s API |
+
+```bash
+# Build all crates
+cargo build --workspace
+
+# Run all tests (unit + integration)
+cargo test --workspace
+
+# Run only integration tests
+cargo test -p integration-tests
 ```
 
 ## Release

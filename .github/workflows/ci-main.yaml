@@ -26,6 +26,8 @@ jobs:
             manifest: cli-rs/Cargo.toml
           - name: kcd-proto
             manifest: kcd-proto/Cargo.toml
+          - name: integration-tests
+            manifest: integration-tests/Cargo.toml
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,6 +42,7 @@ jobs:
             api-rs -> target
             cli-rs -> target
             kcd-proto -> target
+            integration-tests -> target
 
       - name: Build
         run: cargo build --release --manifest-path "${{ matrix.crate.manifest }}"

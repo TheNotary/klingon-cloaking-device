@@ -10,19 +10,11 @@ use tracing::{info, warn};
 /// Watch all CloakingDevice CRs cluster-wide and keep the target_services
 /// list up to date. Uses kube::runtime::watcher for real-time updates.
 /// Handles Apply (cloak), Delete (uncloak), and Init (full-sync) events.
-pub(crate) async fn watch_cloaking_devices(state: Arc<AppState>) {
+pub async fn watch_cloaking_devices(state: Arc<AppState>) {
     info!("Starting CloakingDevice CRD watcher");
 
     loop {
-        // (Re-)create the watcher on each iteration for restart resilience.
-        let client = match kube::Client::try_default().await {
-            Ok(c) => c,
-            Err(e) => {
-                warn!("CRD watcher: failed to create K8s client: {e}");
-                time::sleep(Duration::from_secs(5)).await;
-                continue;
-            }
-        };
+        let client = state.kube_client.clone();
 
         let api: Api<CloakingDevice> = Api::all(client.clone());
         let watcher_config = watcher::Config::default();
@@ -111,8 +103,8 @@ pub(crate) async fn watch_cloaking_devices(state: Arc<AppState>) {
 
 /// Do a full list of CloakingDevice CRs and replace the target_services vec,
 /// cloaking any newly-discovered targets and uncloaking any that disappeared.
-pub(crate) async fn rebuild_targets_from_list(state: &AppState) -> Result<usize, kube::Error> {
-    let client = kube::Client::try_default().await?;
+pub async fn rebuild_targets_from_list(state: &AppState) -> Result<usize, kube::Error> {
+    let client = state.kube_client.clone();
     let api: Api<CloakingDevice> = Api::all(client.clone());
     let list = api.list(&Default::default()).await?;
 

@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "api-rs",
+    "cli-rs",
+    "kcd-proto",
+    "integration-tests",
+]
+resolver = "2"
