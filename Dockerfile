@@ -15,9 +15,10 @@ COPY kcd-proto/src/ kcd-proto/src/
 COPY api-rs/Cargo.toml api-rs/Cargo.lock api-rs/
 COPY cli-rs/Cargo.toml cli-rs/Cargo.lock cli-rs/
 
-# Dummy main files to let cargo resolve and compile all dependencies.
+# Dummy source files to let cargo resolve and compile all dependencies.
 RUN mkdir -p api-rs/src cli-rs/src \
     && echo "fn main() {}" > api-rs/src/main.rs \
+    && echo "" > api-rs/src/lib.rs \
     && echo "fn main() {}" > cli-rs/src/main.rs
 
 RUN cd api-rs && cargo build --release --target x86_64-unknown-linux-musl
@@ -25,6 +26,7 @@ RUN cd api-rs && cargo build --release --target x86_64-unknown-linux-musl
 # Remove dummy sources and build fingerprints so cargo rebuilds our code.
 RUN rm -rf api-rs/src cli-rs/src \
     && rm -f api-rs/target/x86_64-unknown-linux-musl/release/deps/klingon_cloaking_device_server* \
+    && rm -f api-rs/target/x86_64-unknown-linux-musl/release/deps/libkcd_server* \
     && rm -f api-rs/target/x86_64-unknown-linux-musl/release/deps/kcd_proto* \
     && rm -f api-rs/target/x86_64-unknown-linux-musl/release/klingon-cloaking-device-server*
 
