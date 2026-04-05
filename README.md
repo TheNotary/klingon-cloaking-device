@@ -2,6 +2,46 @@
 
 With Klingon Cloaking Device, you can hide k8s services deployed behind an external load balancer from scanners. The cloaking device restricts access via `loadBalancerSourceRanges` on target services — only IPs that complete a port-knock sequence and TLS authentication are whitelisted.
 
+## Usage Summary
+
+Create a cloakingdevice.yaml CR to cloak a service in your k8s cluster.
+
+(`cloakingdevice.yaml`)
+```yaml
+apiVersion: klingon-cloaking-device.thenotary.github.io/v1alpha1
+kind: CloakingDevice
+metadata:
+  name: ssh-server
+  namespace: kcd-integration-test
+spec:
+  serviceName: ssh-server # name of service to cloak
+  ttlHours: 0 # how long to whitelist an IP (0 = no expiration)
+```
+
+Run `kubectl explain cloakingdevice` for more details.
+
+## Directory Structure
+
+```bash
+├── Dockerfile              # Builds the server container image
+│
+├── docs/                   # Architecture diagrams and design docs
+│
+├── helm_chart/             # Helm chart for deploying into a Kubernetes cluster
+│
+├── integration_test/       # Testing resources to support README's quick start
+│
+├── plain_k8s_manifests/    # Plain (untested) YAML if Helm is a bad fit
+│
+└── rust/
+    ├── api-rs/             # Server binary
+    ├── cli-rs/             # CLI binary
+    ├── integration-tests/  # Integration tests with mock K8s API
+    └── kcd-proto/          # Shared protocol types
+```
+
+---
+
 ## Quick Start — Hide an SSH Service
 
 ### 1. Install the Klingon Cloaking Device Helm chart into your Cluster
@@ -83,28 +123,6 @@ kcd authorize \
 ```bash
 # This should now return the SSH banner
 ssh-keyscan -p 22 -T 5 "$SSH_IP"
-```
-
----
-
-## Directory Structure
-
-```bash
-├── Dockerfile              # Builds the server container image
-│
-├── docs/                   # Architecture diagrams and design docs
-│
-├── helm_chart/             # Helm chart for deploying into a Kubernetes cluster
-│
-├── integration_test/       # Testing resources to support README's quick start
-│
-├── plain_k8s_manifests/    # Plain (untested) YAML if Helm is a bad fit
-│
-└── rust/
-    ├── api-rs/             # Server binary
-    ├── cli-rs/             # CLI binary
-    ├── integration-tests/  # Integration tests with mock K8s API
-    └── kcd-proto/          # Shared protocol types
 ```
 
 ---
