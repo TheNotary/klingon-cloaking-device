@@ -57,6 +57,30 @@ kcd authorize \
   --knock-password "my-knock-secret" \
   --access-password "my-access-secret" \
   --ca-cert ./ca.pem
+
+# With explicit TLS hostname (when --server is an IP)
+kcd authorize \
+  --server 1.2.3.4 \
+  --hostname my-kcd.example.com \
+  --knock-password "my-knock-secret" \
+  --access-password "my-access-secret"
+
+# Using ~/.kcd/config (authorize all configured servers)
+kcd authorize
+```
+
+## Config File
+
+After a successful authorization with explicit arguments, the CLI will prompt you to save the server to `~/.kcd/config`. Once saved, you can run `kcd authorize` with no arguments to authorize against all configured servers.
+
+```yaml
+servers:
+  - name: my-kcd
+    address: 1.2.3.4
+    hostname: my-kcd.example.com
+    knock_password: my-knock-secret
+    access_password: my-access-secret
+    insecure_skip_tls_verify: false
 ```
 
 ## Options
@@ -64,11 +88,12 @@ kcd authorize \
 ```
 klingon-cloaking-device authorize [OPTIONS]
 
-    --server <IP>              Server IP or hostname
+    --server <IP>              Server IP or hostname (optional if ~/.kcd/config exists)
     --knock-port <PORT>        UDP knock port [default: 9000]
     --auth-port <PORT>         TCP auth port [default: 9001]
     --knock-password <SECRET>  Knock password (or KCD_KNOCK_PASSWORD env)
     --access-password <SECRET> Access password (or KCD_ACCESS_PASSWORD env)
+    --hostname <HOST>          TLS server name for cert verification (overrides --server)
     --ca-cert <PATH>           PEM CA certificate for server verification
     --insecure                 Skip TLS certificate verification
     --knock-chunks <N>         Number of knock chunks [default: 4]
