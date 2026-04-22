@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::Write;
+#[cfg(unix)]
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::PathBuf;
 
@@ -48,11 +49,11 @@ pub fn save_config(config: &KcdConfig) -> Result<(), Box<dyn std::error::Error>>
         fs::create_dir_all(parent)?;
     }
     let yaml = serde_yml::to_string(config)?;
-    let mut file = fs::OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .mode(0o600)
-        .open(&path)?;
+    let mut opts = fs::OpenOptions::new();
+    opts.write(true).create_new(true);
+    #[cfg(unix)]
+    opts.mode(0o600);
+    let mut file = opts.open(&path)?;
     file.write_all(yaml.as_bytes())?;
     Ok(())
 }
