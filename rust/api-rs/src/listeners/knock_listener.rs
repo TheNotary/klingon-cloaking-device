@@ -35,6 +35,8 @@ pub async fn run_knock_listener(
             }
         };
 
+        info!("UDP recv: {len} bytes from {src}");
+
         let pkt = match KnockPacket::from_bytes(&buf[..len]) {
             Some(p) => p,
             None => {

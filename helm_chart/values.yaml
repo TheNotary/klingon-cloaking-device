@@ -14,6 +14,11 @@ ports:
   knock: 9000
   auth: 9001
 
+service:
+  # Local preserves client source IP — required for knock-to-auth IP correlation.
+  # Cluster (default K8s behavior) SNAT's source IPs, breaking KCD's design.
+  externalTrafficPolicy: Local
+
 resources:
   requests:
     cpu: 5m
@@ -60,11 +65,12 @@ tls:
 
 networkPolicy:
   enabled: true
-  # CIDRs permanently allowed to reach the auth port (for health probes).
-  # These defaults are Azure-specific — adjust for your cloud provider.
-  # The node subnet entry is needed so kubelet readiness probes can reach port 9001;
-  # without it the pod is marked NotReady and the LB drops all TCP traffic.
-  # Set to [] to disable (not recommended on Azure).
+  # CIDRs allowed to reach the auth port (TCP 9001).
+  # Must include 0.0.0.0/0 for internet-facing LoadBalancer services since
+  # external clients connect to the auth port after a valid UDP knock.
+  # The KCD application enforces authorization via the knock mechanism.
+  # Azure-specific entries are needed for LB health probes and kubelet probes.
   alwaysAllowedCIDRs:
+    - "0.0.0.0/0"          # Internet clients (app-level auth via knock)
     - "168.63.129.16/32"   # Azure LB health probe
     - "10.224.0.0/16"      # AKS node subnet (kubelet probes)

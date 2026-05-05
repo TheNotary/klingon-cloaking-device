@@ -6,8 +6,12 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Chart.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-health-probe-protocol: tcp
+    service.beta.kubernetes.io/azure-load-balancer-health-probe-port: "{{ .Values.ports.auth }}"
 spec:
   type: LoadBalancer
+  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
   ports:
     - port: {{ .Values.ports.knock }}
       targetPort: {{ .Values.ports.knock }}
