@@ -14,8 +14,16 @@ env:
   IMAGE_NAME: ${{ github.repository_owner }}/klingon-cloaking-device-server
 
 jobs:
-  build-and-push-container:
-    runs-on: ubuntu-latest
+  build-image:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -41,21 +49,70 @@ jobs:
         run: |
           sed -i "s/^version = \".*\"/version = \"${{ steps.version.outputs.VERSION }}\"/" rust/Cargo.toml
 
-      - name: Build and push
+      - name: Build and push by digest
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/klingon-cloaking-device-server:${{ steps.version.outputs.VERSION }}
-            ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/klingon-cloaking-device-server:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.OWNER_LC }}/klingon-cloaking-device-server,push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,scope=${{ matrix.platform }},mode=max
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.platform == 'linux/amd64' && 'linux-amd64' || 'linux-arm64' }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge-manifests:
+    runs-on: ubuntu-latest
+    needs: build-image
+    steps:
+      - name: Normalize owner to lowercase
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create multi-arch manifest
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create \
+            -t "${{ env.REGISTRY }}/${{ env.OWNER_LC }}/klingon-cloaking-device-server:${{ steps.version.outputs.VERSION }}" \
+            -t "${{ env.REGISTRY }}/${{ env.OWNER_LC }}/klingon-cloaking-device-server:latest" \
+            $(printf '${{ env.REGISTRY }}/${{ env.OWNER_LC }}/klingon-cloaking-device-server@sha256:%s ' *)
 
   publish-helm-chart:
     runs-on: ubuntu-latest
-    needs: build-and-push-container
+    needs: merge-manifests
     steps:
       - name: Checkout
         uses: actions/checkout@v6
