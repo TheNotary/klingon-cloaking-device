@@ -28,6 +28,6 @@ RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /klingon-cloaking-device-server /klingon-cloaking-device-server
 
-EXPOSE 9000/udp 9001
+EXPOSE 9000/udp 9001 9002
 
 ENTRYPOINT ["/klingon-cloaking-device-server"]

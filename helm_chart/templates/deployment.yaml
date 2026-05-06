@@ -31,6 +31,9 @@ spec:
             - containerPort: {{ .Values.ports.auth }}
               protocol: TCP
               name: auth
+            - containerPort: {{ .Values.ports.health }}
+              protocol: TCP
+              name: health
           env:
             - name: KCD_KNOCK_PASSWORD
               valueFrom:
@@ -50,6 +53,8 @@ spec:
                   fieldPath: metadata.namespace
             - name: KCD_AUTH_NETPOL_NAME
               value: {{ .Chart.Name }}-auth-netpol
+            - name: KCD_HEALTH_PORT
+              value: {{ .Values.ports.health | quote }}
           {{- if .Values.networkPolicy.alwaysAllowedCIDRs }}
             - name: KCD_ALWAYS_ALLOWED_CIDRS
               value: {{ join "," .Values.networkPolicy.alwaysAllowedCIDRs | quote }}
@@ -64,12 +69,12 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           readinessProbe:
             tcpSocket:
-              port: {{ .Values.ports.auth }}
+              port: {{ .Values.ports.health }}
             initialDelaySeconds: 3
             periodSeconds: 5
           livenessProbe:
             tcpSocket:
-              port: {{ .Values.ports.auth }}
+              port: {{ .Values.ports.health }}
             initialDelaySeconds: 5
             periodSeconds: 10
           {{- if .Values.tls.mode }}

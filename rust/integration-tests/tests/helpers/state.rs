@@ -111,6 +111,7 @@ impl TestStateBuilder {
             authorized_ips: RwLock::new(HashMap::new()),
             knock_bind_addr: "127.0.0.1:0".to_string(),
             auth_bind_addr: "127.0.0.1:0".to_string(),
+            health_bind_addr: "127.0.0.1:0".to_string(),
         });
 
         TestContext {

@@ -60,4 +60,6 @@ pub struct AppState {
     pub knock_bind_addr: String,
     /// Bind address for the TCP/TLS auth listener (e.g. "0.0.0.0:9001").
     pub auth_bind_addr: String,
+    /// Bind address for the internal health probe listener (e.g. "0.0.0.0:9002").
+    pub health_bind_addr: String,
 }

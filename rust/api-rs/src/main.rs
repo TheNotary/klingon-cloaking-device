@@ -10,7 +10,7 @@ use tracing::{info, warn};
 
 use kcd_server::{
     AppState,
-    listeners::{auth_listener, knock_listener},
+    listeners::{auth_listener, health_listener, knock_listener},
     netpol::clean_auth_networkpolicy,
     sweeper::{self, seed_authorized_ips},
     tls::{self, load_tls_config_from_paths},
@@ -108,6 +108,7 @@ async fn main() {
         authorized_ips: RwLock::new(HashMap::new()),
         knock_bind_addr: "0.0.0.0:9000".to_string(),
         auth_bind_addr: "0.0.0.0:9001".to_string(),
+        health_bind_addr: format!("0.0.0.0:{}", env::var("KCD_HEALTH_PORT").unwrap_or_else(|_| "9002".into())),
     });
 
     // Do an initial list to populate targets before starting listeners.
@@ -134,6 +135,7 @@ async fn main() {
     tokio::join!(
         knock_listener::run_knock_listener(state.clone(), None),
         auth_listener::run_auth_listener(state.clone(), None),
+        health_listener::run_health_listener(state.clone()),
         sweeper::sweep_knock_state(state.clone()),
         sweeper::sweep_authorized_ips(state.clone()),
         cloak_watcher::watch_cloaking_devices(state.clone()),

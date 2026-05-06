@@ -13,6 +13,7 @@ replicas: 1
 ports:
   knock: 9000
   auth: 9001
+  health: 9002
 
 service:
   # Local preserves client source IP — required for knock-to-auth IP correlation.
