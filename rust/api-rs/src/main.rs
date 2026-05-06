@@ -106,8 +106,8 @@ async fn main() {
         knock_progress: RwLock::new(HashMap::new()),
         knocked_ips: RwLock::new(HashMap::new()),
         authorized_ips: RwLock::new(HashMap::new()),
-        knock_bind_addr: "0.0.0.0:9000".to_string(),
-        auth_bind_addr: "0.0.0.0:9001".to_string(),
+        knock_bind_addr: format!("0.0.0.0:{}", env::var("KCD_KNOCK_PORT").unwrap_or_else(|_| "9000".into())),
+        auth_bind_addr: format!("0.0.0.0:{}", env::var("KCD_AUTH_PORT").unwrap_or_else(|_| "9001".into())),
         health_bind_addr: format!("0.0.0.0:{}", env::var("KCD_HEALTH_PORT").unwrap_or_else(|_| "9002".into())),
     });
 

@@ -53,6 +53,10 @@ spec:
                   fieldPath: metadata.namespace
             - name: KCD_AUTH_NETPOL_NAME
               value: {{ .Chart.Name }}-auth-netpol
+            - name: KCD_KNOCK_PORT
+              value: {{ .Values.ports.knock | quote }}
+            - name: KCD_AUTH_PORT
+              value: {{ .Values.ports.auth | quote }}
             - name: KCD_HEALTH_PORT
               value: {{ .Values.ports.health | quote }}
           {{- if .Values.networkPolicy.alwaysAllowedCIDRs }}
