@@ -65,12 +65,11 @@ tls:
 
 networkPolicy:
   enabled: true
-  # CIDRs allowed to reach the auth port (TCP 9001).
-  # Must include 0.0.0.0/0 for internet-facing LoadBalancer services since
-  # external clients connect to the auth port after a valid UDP knock.
-  # The KCD application enforces authorization via the knock mechanism.
-  # Azure-specific entries are needed for LB health probes and kubelet probes.
+  # CIDRs always allowed to reach the auth port (TCP 9001).
+  # Do NOT add 0.0.0.0/0 here — that defeats the cloaking mechanism by
+  # allowing any IP to complete a TCP handshake (revealing the port is open).
+  # External client access is granted dynamically per-IP after a valid UDP knock.
+  # Only infrastructure CIDRs (health probes, node subnet) belong here.
   alwaysAllowedCIDRs:
-    - "0.0.0.0/0"          # Internet clients (app-level auth via knock)
     - "168.63.129.16/32"   # Azure LB health probe
     - "10.224.0.0/16"      # AKS node subnet (kubelet probes)
