@@ -2,6 +2,9 @@
 name = "klingon-cloaking-device"
 version.workspace = true
 edition.workspace = true
+repository = "https://github.com/thenotary/klingon-cloaking-device"
+license = "MIT"
+description = "CLI for Klingon Cloaking Device - authorize your IP through port-knock and TLS auth"
 
 [[bin]]
 name = "klingon-cloaking-device"
@@ -20,4 +23,22 @@ webpki-roots.workspace = true
 serde.workspace = true
 serde_yml.workspace = true
 dirs.workspace = true
+
+[package.metadata.binstall]
+pkg-fmt = "bin"
+
+[package.metadata.binstall.overrides.x86_64-unknown-linux-gnu]
+pkg-url = "{ repo }/releases/download/v{ version }/kcd-linux-amd64"
+
+[package.metadata.binstall.overrides.aarch64-unknown-linux-gnu]
+pkg-url = "{ repo }/releases/download/v{ version }/kcd-linux-arm64"
+
+[package.metadata.binstall.overrides.x86_64-apple-darwin]
+pkg-url = "{ repo }/releases/download/v{ version }/kcd-darwin-amd64"
+
+[package.metadata.binstall.overrides.aarch64-apple-darwin]
+pkg-url = "{ repo }/releases/download/v{ version }/kcd-darwin-arm64"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-url = "{ repo }/releases/download/v{ version }/kcd-windows-amd64.exe"
 

@@ -8,11 +8,11 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.0.0-dev"
+version = "0.0.16"
 edition = "2021"
 
 [workspace.dependencies]
-kcd-proto = { path = "kcd-proto" }
+kcd-proto = { path = "kcd-proto", version = "0.0.16" }
 kcd-server = { path = "api-rs", package = "klingon-cloaking-device-server" }
 tokio = { version = "1", features = ["full"] }
 rustls = { version = "0.23", default-features = false, features = ["ring", "logging", "std"] }

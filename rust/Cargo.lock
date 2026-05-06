@@ -928,7 +928,7 @@ dependencies = [
 
 [[package]]
 name = "integration-tests"
-version = "0.0.0-dev"
+version = "0.0.16"
 dependencies = [
  "arc-swap",
  "http",
@@ -1022,11 +1022,11 @@ dependencies = [
 
 [[package]]
 name = "kcd-proto"
-version = "0.0.0-dev"
+version = "0.0.16"
 
 [[package]]
 name = "klingon-cloaking-device"
-version = "0.0.0-dev"
+version = "0.0.16"
 dependencies = [
  "clap",
  "dirs",
@@ -1044,7 +1044,7 @@ dependencies = [
 
 [[package]]
 name = "klingon-cloaking-device-server"
-version = "0.0.0-dev"
+version = "0.0.16"
 dependencies = [
  "arc-swap",
  "futures",

@@ -2,5 +2,8 @@
 name = "kcd-proto"
 version.workspace = true
 edition.workspace = true
+license = "MIT"
+description = "Shared protocol types for Klingon Cloaking Device"
+repository = "https://github.com/thenotary/klingon-cloaking-device"
 
 [dependencies]

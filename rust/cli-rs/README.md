@@ -4,7 +4,15 @@ The CLI binary: `klingon-cloaking-device`. Sends a knock sequence and authentica
 
 ## Install
 
-Download the latest binary from [GitHub Releases](https://github.com/thenotary/klingon-cloaking-device/releases):
+The recommended way to install is via [cargo-binstall](https://github.com/cargo-bins/cargo-binstall) — it downloads a prebuilt binary for your platform:
+
+```bash
+cargo binstall klingon-cloaking-device
+```
+
+### Manual download
+
+Alternatively, download a binary from [GitHub Releases](https://github.com/thenotary/klingon-cloaking-device/releases):
 
 | Platform        | Binary             |
 |----------       |--------            |

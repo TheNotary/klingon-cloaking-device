@@ -88,6 +88,15 @@ ssh-keyscan -p 22 -T 5 "$SSH_IP"
 
 ### 5. Install the CLI
 
+The recommended way to install is via [cargo-binstall](https://github.com/cargo-bins/cargo-binstall) — it downloads a prebuilt binary for your platform:
+
+```bash
+cargo binstall klingon-cloaking-device
+```
+
+<details>
+<summary>Alternative: manual download</summary>
+
 Download the latest binary from [GitHub Releases](https://github.com/thenotary/klingon-cloaking-device/releases):
 
 ```bash
@@ -96,6 +105,8 @@ curl -Lo kcd https://github.com/thenotary/klingon-cloaking-device/releases/lates
 chmod +x kcd
 sudo mv kcd /usr/local/bin/
 ```
+
+</details>
 
 Or build from source: `cd rust/cli-rs && cargo build --release`
 
