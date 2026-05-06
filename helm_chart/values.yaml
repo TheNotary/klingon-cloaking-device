@@ -66,11 +66,16 @@ tls:
 
 networkPolicy:
   enabled: true
+  # UPDATE: Turns out these can be blank now?... 
+  # It was once believed that these entries were required to make sure the
+  # services being cloaked would remain healthy from the perspective of k8s
+  # but I'm not convinced so am going to test leaving them blank for a bit.
+  #
   # CIDRs always allowed to reach the auth port (TCP 9001).
   # Do NOT add 0.0.0.0/0 here — that defeats the cloaking mechanism by
   # allowing any IP to complete a TCP handshake (revealing the port is open).
   # External client access is granted dynamically per-IP after a valid UDP knock.
   # Only infrastructure CIDRs (health probes, node subnet) belong here.
-  alwaysAllowedCIDRs:
-    - "168.63.129.16/32"   # Azure LB health probe
-    - "10.224.0.0/16"      # AKS node subnet (kubelet probes)
+  alwaysAllowedCIDRs: []
+    # - "168.63.129.16/32" # Azure LB health probe
+    # - "10.0.0.0/8"       # Allow private network access (health proves)
